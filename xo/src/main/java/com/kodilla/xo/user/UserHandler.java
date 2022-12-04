@@ -40,6 +40,18 @@ public class UserHandler {
         System.out.println("This is not a number! Try again!");
     }
 
+    public void printWinner(User user){
+        if(user.getUserType() == 1){
+            System.out.println("X win!");
+        } else {
+            System.out.println("O win!");
+        }
+    }
+
+    public void printDraw(){
+        System.out.println("This is a draw!");
+    }
+
     public int getSelection() {
         printEnterSelectedPosition();
         while (!scanner.hasNextInt()){

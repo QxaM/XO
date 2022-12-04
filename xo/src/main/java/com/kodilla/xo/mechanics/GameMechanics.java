@@ -3,7 +3,9 @@ package com.kodilla.xo.mechanics;
 import com.kodilla.xo.board.Board;
 import com.kodilla.xo.user.User;
 
-public class GameMechanics {
+import java.util.Arrays;
+
+public class GameMechanics implements WinningMechanics{
     private final User userX = new User(1);
     private final User userO = new User(2);
     private User activeUser = userX;
@@ -27,5 +29,49 @@ public class GameMechanics {
     }
     public User getActiveUser() {
         return activeUser;
+    }
+
+    @Override
+    public boolean winByRows(Board board, User user) {
+        return Arrays.stream(board.getBoard())
+                .anyMatch(arr -> Arrays.stream(arr).allMatch(n -> n == user.getUserType()));
+    }
+
+    @Override
+    public boolean winByColumns(Board board, User user) {
+        for(int i = 0; i<board.getBoard().length; i++){
+            int count = 0;
+            for (int j = 0; j<board.getBoard()[i].length; j++) {
+                if (board.getBoard()[j][i] == user.getUserType()) {
+                    count ++;
+                }
+            }
+            if (count>=board.getBoard().length){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean winByDiagonal(Board board, User user) {
+        //check diagonal
+        for(int i = 0; i<board.getBoard().length; i++){
+            if (board.getBoard()[i][i] != user.getUserType()){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean winByAntiDiagonal(Board board, User user) {
+        int boardSize = board.getBoard().length;
+
+        for(int i = 0; i<boardSize; i++){
+            if(board.getBoard()[i][(boardSize-1)-i] != user.getUserType()){
+                return false;
+            }
+        }
+        return true;
     }
 }

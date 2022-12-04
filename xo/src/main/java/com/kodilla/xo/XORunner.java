@@ -17,9 +17,9 @@ public class XORunner {
 
         userHandler.printGreeting();
         userHandler.printHelp();
+        BoardPrinter.printBoard(theBoard);
         while(!end){
             userHandler.printActiveUser(gameMechanics.getActiveUser());
-            BoardPrinter.printBoard(theBoard);
 
             boolean selectionValidated = false;
             while(!selectionValidated){
@@ -32,6 +32,16 @@ public class XORunner {
                 } catch (PositionAlreadySetException e) {
                     System.out.println("Entered position has already been set! Try with different one");
                 }
+            }
+            BoardPrinter.printBoard(theBoard);
+
+            if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())){
+                userHandler.printWinner(gameMechanics.getActiveUser());
+                end = true;
+            }
+            if(gameMechanics.draw(theBoard)){
+                userHandler.printDraw();
+                end = true;
             }
             gameMechanics.switchActiveUser();
         }
