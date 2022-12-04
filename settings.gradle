@@ -1,0 +1,3 @@
+rootProject.name = 'kodilla-xo'
+include 'xo'
+
