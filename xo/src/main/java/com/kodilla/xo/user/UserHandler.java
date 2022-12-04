@@ -24,7 +24,12 @@ public class UserHandler {
     }
 
     public void printActiveUser(User activeUser){
-        System.out.println(activeUser.getUserType() + " are moving");
+         if(activeUser.getUserType() == 1){
+             System.out.println("X are moving");
+         }
+         if(activeUser.getUserType() == 2){
+             System.out.println("0 are moving");
+         }
     }
 
     public void printEnterSelectedPosition(){
