@@ -1,5 +1,7 @@
 package com.kodilla.xo.user;
 
+import java.util.Objects;
+
 public class User {
     private final int userType;
     private int userSelection;
@@ -18,5 +20,18 @@ public class User {
 
     public int getUserSelection() {
         return userSelection;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return userType == user.userType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userType);
     }
 }

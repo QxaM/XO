@@ -1,5 +1,6 @@
 package com.kodilla.xo.user;
 
+import java.awt.*;
 import java.util.Scanner;
 
 public class UserHandler {
@@ -22,22 +23,26 @@ public class UserHandler {
         }
     }
 
-    //TODO: add user checks after user class is created
-    public void printActiveUser(){
-        System.out.println("'X' are moving");
+    public void printActiveUser(User activeUser){
+        System.out.println(activeUser.getUserType() + " are moving");
     }
 
     public void printEnterSelectedPosition(){
         System.out.println("Enter selected position: ");
     }
 
-    public int getSelection() throws OutOfScope{
-        int selection = scanner.nextInt();
-        if (selection > 9 || selection < 1){
-            throw new OutOfScope();
+    public void printNotANumber(){
+        System.out.println("This is not a number! Try again!");
+    }
+
+    public int getSelection() {
+        printEnterSelectedPosition();
+        while (!scanner.hasNextInt()){
+            printNotANumber();
+            printEnterSelectedPosition();
+            scanner.next();
         }
-        //scanner.next();
-        return selection;
+        return scanner.nextInt();
     }
 
     public void userHandlerCleanUp(){

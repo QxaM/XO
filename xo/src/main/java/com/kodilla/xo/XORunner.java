@@ -2,7 +2,7 @@ package com.kodilla.xo;
 
 import com.kodilla.xo.board.Board;
 import com.kodilla.xo.board.BoardPrinter;
-import com.kodilla.xo.user.OutOfScope;
+import com.kodilla.xo.mechanics.GameMechanics;
 import com.kodilla.xo.user.User;
 import com.kodilla.xo.user.UserHandler;
 
@@ -12,24 +12,15 @@ public class XORunner {
     public static void main(String[] args){
         Board theBoard = new Board();
         UserHandler userHandler = new UserHandler();
-        User userX = new User(1);
-        User userO = new User(2);
+        GameMechanics gameMechanics = new GameMechanics();
 
         userHandler.printGreeting();
         userHandler.printHelp();
-        userHandler.printActiveUser();
+        userHandler.printActiveUser(gameMechanics.getActiveUser());
         BoardPrinter.printBoard(theBoard);
         userHandler.printEnterSelectedPosition();
-        try {
-            int selection = userHandler.getSelection();
-            userX.setUserSelection(selection);
-        } catch (OutOfScope e){
-            System.out.println("Enter proper position number");
-        } catch (InputMismatchException e){
-            System.out.println("This is not a number");
-        }
 
-        theBoard.addToBoard(userX);
+        theBoard.addToBoard(gameMechanics.getActiveUser());
         BoardPrinter.printBoard(theBoard);
 
         userHandler.userHandlerCleanUp();
