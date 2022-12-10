@@ -34,7 +34,9 @@ public class GameMechanics implements WinningMechanics{
     @Override
     public boolean winByRows(Board board, User user) {
         return Arrays.stream(board.getBoard())
-                .anyMatch(arr -> Arrays.stream(arr).allMatch(n -> n == user.getUserType()));
+                .anyMatch(arr -> Arrays.stream(arr)
+                        .allMatch(n -> n == user.getUserType())
+                );
     }
 
     @Override

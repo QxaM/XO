@@ -1,8 +1,8 @@
 package com.kodilla.xo.board;
 
-public interface PositionConverter {
+public class PositionConverter {
 
-    static int positionToRow(int position, int size){
+    public static int positionToRow(int position, int size){
         int row;
         int selection = (int) Math.ceil((double)position/ size);
         //board position rows switched from 1 2 3 to 3 2 1 - so higher values are at the top
@@ -17,7 +17,7 @@ public interface PositionConverter {
         return row;
     }
 
-    static int positionToColumn(int position, int size){
+    public static int positionToColumn(int position, int size){
         return (position-1) % size;
     }
 }

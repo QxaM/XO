@@ -1,8 +1,8 @@
 package com.kodilla.xo.board;
 
-public interface BoardPrinter {
+public class BoardPrinter {
 
-    static void printBoard(Board board){
+    public static void printBoard(Board board){
         for(int[] boardRows : board.getBoard()){
             System.out.print("|");
             for (int boardElement : boardRows){
