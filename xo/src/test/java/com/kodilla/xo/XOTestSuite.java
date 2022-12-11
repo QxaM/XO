@@ -1,10 +1,9 @@
 package com.kodilla.xo;
 
 import com.kodilla.xo.board.Board;
+import com.kodilla.xo.board.BoardInitializator;
 import com.kodilla.xo.board.PositionConverter;
-import com.kodilla.xo.mechanics.GameMechanics;
-import com.kodilla.xo.mechanics.PositionAlreadySetException;
-import com.kodilla.xo.mechanics.SelectionOutOfScopeException;
+import com.kodilla.xo.mechanics.*;
 import com.kodilla.xo.user.User;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,7 +48,7 @@ public class XOTestSuite {
         @Test
         void testAddToBoard() {
             //Given
-            Board board = new Board();
+            Board board = new Board(3);
             User testUser1 = new User(1);
             testUser1.setUserSelection(2);
             User testUser2 = new User(2);
@@ -72,7 +71,7 @@ public class XOTestSuite {
         @Test
         void testAt() {
             //Given
-            Board board = new Board();
+            Board board = new Board(3);
             User testUser1 = new User(1);
             testUser1.setUserSelection(2);
             User testUser2 = new User(2);
@@ -106,7 +105,7 @@ public class XOTestSuite {
         private final User userO = new User(2);
 
         private Board initializeBoardWithX(int i, int j, int k){
-            Board board = new Board();
+            Board board = new Board(3);
 
             userX.setUserSelection(i);
             board.addToBoard(userX);
@@ -121,7 +120,7 @@ public class XOTestSuite {
         }
 
         private Board initializeBoardWithO(int i, int j, int k){
-            Board board = new Board();
+            Board board = new Board(3);
 
             userO.setUserSelection(i);
             board.addToBoard(userO);
@@ -133,6 +132,128 @@ public class XOTestSuite {
             board.addToBoard(userO);
 
             return board;
+        }
+
+        @Test
+        void testInitializePlayersWrongNumber() {
+            //Given
+            GameMechanics gameMechanics = new GameMechanics();
+
+            //When + Then
+            assertThrows(WrongNumberOfPlayers.class, () -> gameMechanics.initializePlayers('3'));
+        }
+
+        @Test
+        void testInitializeTwoPlayers() {
+            //Given
+            GameMechanics gameMechanics = new GameMechanics();
+
+            //When
+            boolean result = false;
+            try {
+                result = gameMechanics.initializePlayers('2');
+            } catch (WrongNumberOfPlayers e) {
+                fail();
+            }
+
+            //Then
+            assertAll(() -> assertFalse(gameMechanics.getUserX().isComputer()),
+                    () -> assertFalse(gameMechanics.getUserO().isComputer()));
+            assertFalse(result);
+        }
+
+        @Test
+        void testInitializeOnePlayer() {
+            //Given
+            GameMechanics gameMechanics = new GameMechanics();
+
+            //When
+            boolean result = false;
+            try {
+                result = gameMechanics.initializePlayers('1');
+            } catch (WrongNumberOfPlayers e) {
+                fail();
+            }
+
+            //Then
+            assertTrue(result);
+        }
+
+        @Test
+        void testInitializeSelectedUserTypeX(){
+            //Given
+            GameMechanics gameMechanics = new GameMechanics();
+
+            //When
+            try{
+                gameMechanics.initializeSelectedUserType('X');
+            } catch (UnknownSelection e){
+                fail();
+            }
+
+            //Then
+            assertAll(() -> assertFalse(gameMechanics.getUserX().isComputer()),
+                    () -> assertTrue(gameMechanics.getUserO().isComputer()));
+        }
+
+        @Test
+        void testInitializeSelectedUserTypeO(){
+            //Given
+            GameMechanics gameMechanics = new GameMechanics();
+
+            //When
+            try{
+                gameMechanics.initializeSelectedUserType('O');
+            } catch (UnknownSelection e){
+                fail();
+            }
+
+            //Then
+            assertAll(() -> assertTrue(gameMechanics.getUserX().isComputer()),
+                    () -> assertFalse(gameMechanics.getUserO().isComputer()));
+        }
+
+        @Test
+        void testInitializeSelectedUserTypeUnknown() {
+            //Given
+            GameMechanics gameMechanics = new GameMechanics();
+
+            //When + Then
+            assertThrows(UnknownSelection.class, () -> gameMechanics.initializeSelectedUserType('Z'));
+        }
+
+        @Test
+        void testActiveUserIsComputerX() {
+            //Given
+            GameMechanics gameMechanics = new GameMechanics();
+
+            //When
+            try{
+                gameMechanics.initializeSelectedUserType('O');
+            } catch (UnknownSelection e) {
+                fail();
+            }
+
+            //Then
+            assertAll(() -> assertTrue(gameMechanics.getUserX().isComputer()),
+                    () -> assertFalse(gameMechanics.getUserO().isComputer()));
+        }
+
+        @Test
+        void testActiveUserIsComputerO() {
+            //Given
+            GameMechanics gameMechanics = new GameMechanics();
+
+            //When
+            try{
+                gameMechanics.initializeSelectedUserType('X');
+            } catch (UnknownSelection e) {
+                fail();
+            }
+
+            //Then
+            assertAll(() -> assertFalse(gameMechanics.getUserX().isComputer()),
+                    () -> assertTrue(gameMechanics.getUserO().isComputer()));
         }
 
         @Test
@@ -160,14 +281,14 @@ public class XOTestSuite {
 
             //When+Then
             assertThrows(SelectionOutOfScopeException.class,
-                    () -> gameMechanics.validateSelection(new Board()));
+                    () -> gameMechanics.validateSelection(new Board(3)));
         }
 
         @Test
         void testValidateSelectionPositionAlreadyExist() {
             //Given
             GameMechanics gameMechanics = new GameMechanics();
-            Board board = new Board();
+            Board board = new Board(3);
 
             User user = new User(1);
             user.setUserSelection(9);
@@ -189,7 +310,7 @@ public class XOTestSuite {
             gameMechanics.getActiveUser().setUserSelection(1);
 
             //When + Then
-            assertDoesNotThrow(() -> gameMechanics.validateSelection(new Board()));
+            assertDoesNotThrow(() -> gameMechanics.validateSelection(new Board(3)));
         }
 
         @Test
@@ -199,7 +320,69 @@ public class XOTestSuite {
             gameMechanics.getActiveUser().setUserSelection(9);
 
             //When + Then
-            assertDoesNotThrow(() -> gameMechanics.validateSelection(new Board()));
+            assertDoesNotThrow(() -> gameMechanics.validateSelection(new Board(3)));
+        }
+
+        @Test
+        void testValidateBoardSizeOutOfScope() {
+            //Given
+
+            //When + Then
+            assertThrows(UnknownSelection.class, () -> BoardInitializator.validateBoardSize('5'));
+        }
+
+        @Test
+        void testValidateBoardSize3x3() {
+            //Given
+
+            //When
+            int boardSize = 0;
+            try{
+                boardSize = BoardInitializator.validateBoardSize('1');
+            } catch (UnknownSelection e) {
+                fail();
+            }
+
+            //Then
+            assertEquals(3, boardSize);
+        }
+
+        @Test
+        void testValidateBoardSize10x10() {
+            //Given
+
+            //When
+            int boardSize = 0;
+            try{
+                boardSize = BoardInitializator.validateBoardSize('2');
+            } catch (UnknownSelection e) {
+                fail();
+            }
+
+            //Then
+            assertEquals(10, boardSize);
+        }
+
+        @Test
+        void testCreateBoardFromSize3() {
+            //Given
+
+            //When
+            Board resultBoard = BoardInitializator.createBoardFromSize(3);
+
+            //Then
+            assertEquals(3, resultBoard.getBoard().length);
+        }
+
+        @Test
+        void testCreateBoardFromSize10() {
+            //Given
+
+            //When
+            Board resultBoard = BoardInitializator.createBoardFromSize(10);
+
+            //Then
+            assertEquals(10, resultBoard.getBoard().length);
         }
 
         @Test
@@ -408,7 +591,7 @@ public class XOTestSuite {
         void testDraw(){
             //Given
             GameMechanics gameMechanics = new GameMechanics();
-            Board boardDraw = new Board();
+            Board boardDraw = new Board(3);
 
             //board
             //XOX
@@ -444,7 +627,7 @@ public class XOTestSuite {
         void testNotDraw(){
             //Given
             GameMechanics gameMechanics = new GameMechanics();
-            Board boardDraw = new Board();
+            Board boardDraw = new Board(3);
 
             //board
             //XOX

@@ -4,7 +4,11 @@ import com.kodilla.xo.user.User;
 
 public final class Board {
 
-    private final int[][] board = new int[3][3];
+    private final int[][] board;
+
+    public Board(int size) {
+        this.board = new int[size][size];
+    }
 
     public void addToBoard(User activeUser){
         int positionRow = PositionConverter.positionToRow(activeUser.getUserSelection(), board.length);

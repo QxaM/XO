@@ -1,6 +1,7 @@
 package com.kodilla.xo.mechanics;
 
 import com.kodilla.xo.board.Board;
+import com.kodilla.xo.randomizer.ComputerRandomizer;
 import com.kodilla.xo.user.User;
 
 import java.util.Arrays;
@@ -9,6 +10,36 @@ public class GameMechanics implements WinningMechanics{
     private final User userX = new User(1);
     private final User userO = new User(2);
     private User activeUser = userX;
+
+    public boolean initializePlayers(char numberOfPlayers) throws WrongNumberOfPlayers{
+        if(numberOfPlayers != '2' && numberOfPlayers != '1'){
+            throw new WrongNumberOfPlayers();
+        }
+        if(numberOfPlayers == '2'){
+            userX.setComputer(false);
+            userO.setComputer(false);
+            return false;
+        }
+        return true;
+    }
+
+    public void initializeSelectedUserType(char selection) throws UnknownSelection{
+        if (selection != 'X' && selection != 'O' && selection != 'x' && selection != 'o'){
+            throw new UnknownSelection();
+        }
+        if (selection == 'X' || selection == 'x') {
+            userX.setComputer(false);
+            userO.setComputer(true);
+        }
+        if (selection == 'O' || selection == 'o') {
+            userX.setComputer(true);
+            userO.setComputer(false);
+        }
+    }
+
+    public boolean activeUserIsComputer(){
+        return activeUser.isComputer();
+    }
 
     public void switchActiveUser() {
         if (activeUser.equals(userX)) {
@@ -27,8 +58,31 @@ public class GameMechanics implements WinningMechanics{
         }
         return true;
     }
+
+    public void simulateComputerMove(Board board){
+        boolean validComputerMove = false;
+        int computerMove;
+        while (!validComputerMove) {
+            computerMove = ComputerRandomizer.randomComputerMove();
+            activeUser.setUserSelection(computerMove);
+            try{
+                validateSelection(board);
+                validComputerMove = true;
+            } catch (SelectionOutOfScopeException | PositionAlreadySetException e) {
+            }
+        }
+    }
+
     public User getActiveUser() {
         return activeUser;
+    }
+
+    public User getUserX() {
+        return userX;
+    }
+
+    public User getUserO() {
+        return userO;
     }
 
     @Override

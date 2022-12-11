@@ -1,48 +1,96 @@
 package com.kodilla.xo;
 
 import com.kodilla.xo.board.Board;
+import com.kodilla.xo.board.BoardInitializator;
 import com.kodilla.xo.board.BoardPrinter;
-import com.kodilla.xo.mechanics.GameMechanics;
-import com.kodilla.xo.mechanics.PositionAlreadySetException;
-import com.kodilla.xo.mechanics.SelectionOutOfScopeException;
+import com.kodilla.xo.mechanics.*;
 import com.kodilla.xo.user.UserHandler;
 
 
 public class XORunner {
     public static void main(String[] args){
-        Board theBoard = new Board();
         UserHandler userHandler = new UserHandler();
-        GameMechanics gameMechanics = new GameMechanics();
+        GameMechanics gameMechanics = null;
+        Board theBoard = null;
         boolean end = false;
 
         userHandler.printGreeting();
+        boolean boardSizeValidated = false;
+        while (!boardSizeValidated){
+            userHandler.printBoardSelection();
+            char boardSelection = userHandler.getCharacterSelection();
+            try {
+                int boardSize = BoardInitializator.validateBoardSize(boardSelection);
+                theBoard = BoardInitializator.createBoardFromSize(boardSize);
+                gameMechanics = GameMechanicsInitializator.createGameMechanics(boardSize);
+                boardSizeValidated = true;
+            } catch (UnknownSelection e) {
+                userHandler.printUnknownBoardSelection();
+            }
+        }
+
+        boolean playerNumberValidated = false;
+        while (!playerNumberValidated){
+            userHandler.printChoosePlayerNumber();
+            char playerNumberSelection = userHandler.getCharacterSelection();
+            try{
+                //addition initialization necessary - X or O selection for one player game
+                boolean additionalInitializationNecessary = gameMechanics.initializePlayers(playerNumberSelection);
+
+                if(additionalInitializationNecessary) {
+                    boolean playerSelectionValidated = false;
+                    while(!playerSelectionValidated){
+                        userHandler.printChooseNaughtsOrCrosses();
+                        char playerTypeSelection = userHandler.getCharacterSelection();
+                        try{
+                            gameMechanics.initializeSelectedUserType(playerTypeSelection);
+                            userHandler.printUserSelection(playerTypeSelection);
+                            playerSelectionValidated = true;
+                        } catch (UnknownSelection e){
+                            userHandler.printWrongNaughtsCrossSelection();
+                        }
+                    }
+                }
+                playerNumberValidated = true;
+            } catch (WrongNumberOfPlayers e) {
+                userHandler.printUnknownPlayerNumber();
+            }
+        }
+
         userHandler.printHelp();
         BoardPrinter.printBoard(theBoard);
         while(!end){
             userHandler.printActiveUser(gameMechanics.getActiveUser());
 
-            boolean selectionValidated = false;
-            while(!selectionValidated){
-                gameMechanics.getActiveUser().setUserSelection(userHandler.getSelection());
-                try{
-                    selectionValidated = gameMechanics.validateSelection(theBoard);
-                    theBoard.addToBoard(gameMechanics.getActiveUser());
-                } catch (SelectionOutOfScopeException e){
-                    System.out.println("Entered position should be a number from 1 to 9");
-                } catch (PositionAlreadySetException e) {
-                    System.out.println("Entered position has already been set! Try with different one");
+            if(gameMechanics.activeUserIsComputer()) {
+                gameMechanics.simulateComputerMove(theBoard);
+            } else {
+                boolean selectionValidated = false;
+                while(!selectionValidated){
+                    gameMechanics.getActiveUser().setUserSelection(userHandler.getPositionSelection());
+                    try{
+                        selectionValidated = gameMechanics.validateSelection(theBoard);
+                    } catch (SelectionOutOfScopeException e){
+                        System.out.println("Entered position should be a number from 1 to 9");
+                    } catch (PositionAlreadySetException e) {
+                        System.out.println("Entered position has already been set! Try with different one");
+                    }
                 }
             }
+
+            theBoard.addToBoard(gameMechanics.getActiveUser());
             BoardPrinter.printBoard(theBoard);
 
             if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())){
                 userHandler.printWinner(gameMechanics.getActiveUser());
                 end = true;
+            } else {
+                if(gameMechanics.draw(theBoard)){
+                    userHandler.printDraw();
+                    end = true;
+                }
             }
-            if(gameMechanics.draw(theBoard)){
-                userHandler.printDraw();
-                end = true;
-            }
+
             gameMechanics.switchActiveUser();
         }
 

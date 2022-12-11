@@ -1,6 +1,5 @@
 package com.kodilla.xo.user;
 
-import java.awt.*;
 import java.util.Scanner;
 
 public class UserHandler {
@@ -8,6 +7,41 @@ public class UserHandler {
 
     public void printGreeting(){
         System.out.println("Hello Player! Let's play a game!");
+    }
+
+    public void printChoosePlayerNumber() {
+        System.out.println("Do you have two players or want to play with a computer?");
+        System.out.println("Enter: ");
+        System.out.println("1 - one player vs computer");
+        System.out.println("2 - two players");
+    }
+
+    public void printUnknownPlayerNumber() {
+        System.out.println("Unknown number of players! Try again!");
+    }
+
+    public void printChooseNaughtsOrCrosses() {
+        System.out.println("Choose naughts or crosses. Enter: ");
+        System.out.println("X - crosses");
+        System.out.println("O - naughts");
+    }
+
+    public void printWrongNaughtsCrossSelection() {
+        System.out.println("Selection is nor Naughts nor Crosses! Try Again!");
+    }
+
+    public void printUserSelection(char selection) {
+        System.out.println("You have selected " + selection);
+    }
+
+    public void printBoardSelection(){
+        System.out.println("Enter selected board: ");
+        System.out.println("1 - 3x3 board");
+        System.out.println("2 - 10x10 board");
+    }
+
+    public void printUnknownBoardSelection() {
+        System.out.println("Unknown board selection! Try again!");
     }
 
     public void printHelp(){
@@ -52,7 +86,10 @@ public class UserHandler {
         System.out.println("This is a draw!");
     }
 
-    public int getSelection() {
+    public char getCharacterSelection() {
+        return scanner.nextLine().charAt(0);
+    }
+    public int getPositionSelection() {
         printEnterSelectedPosition();
         while (!scanner.hasNextInt()){
             printNotANumber();

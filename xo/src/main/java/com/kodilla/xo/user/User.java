@@ -5,6 +5,7 @@ import java.util.Objects;
 public class User {
     private final int userType;
     private int userSelection;
+    private boolean isComputer;
 
     public User(int userType) {
         this.userType = userType;
@@ -14,12 +15,20 @@ public class User {
         this.userSelection = userSelection;
     }
 
+    public void setComputer(boolean computer) {
+        isComputer = computer;
+    }
+
     public int getUserType() {
         return userType;
     }
 
     public int getUserSelection() {
         return userSelection;
+    }
+
+    public boolean isComputer() {
+        return isComputer;
     }
 
     @Override
