@@ -25,9 +25,9 @@ public class XOTestSuite {
             int row1 = PositionConverter.positionToRow(7, 3);
 
             //Then
-            assertAll(() -> assertEquals(2, row3),
+            assertAll(() -> assertEquals(0, row3),
                     () -> assertEquals(1, row2),
-                    () -> assertEquals(0, row1));
+                    () -> assertEquals(2, row1));
         }
 
         @Test
@@ -62,9 +62,9 @@ public class XOTestSuite {
             board.addToBoard(testUser3);
 
             //Then
-            assertAll(() -> assertEquals(1, board.getBoard()[2][1]),
+            assertAll(() -> assertEquals(1, board.getBoard()[0][1]),
                     () -> assertEquals(2, board.getBoard()[1][0]),
-                    () -> assertEquals(1, board.getBoard()[0][2]),
+                    () -> assertEquals(1, board.getBoard()[2][2]),
                     () -> assertEquals(0, board.getBoard()[0][0]));
         }
 
@@ -114,9 +114,37 @@ public class XOTestSuite {
 
             //Then
             assertAll(() -> assertEquals(1, board.getBoard()[0][8]),
-                    () -> assertEquals(2, board.getBoard()[2][0]),
-                    () -> assertEquals(1, board.getBoard()[0][2]),
+                    () -> assertEquals(2, board.getBoard()[3][3]),
+                    () -> assertEquals(1, board.getBoard()[9][0]),
                     () -> assertEquals(0, board.getBoard()[0][0]));
+        }
+
+        @Test
+        void testAt10x10() {
+            //Given
+            Board board = new Board(10);
+            User testUser1 = new User(1);
+            testUser1.setUserSelection(9);
+            User testUser2 = new User(2);
+            testUser2.setUserSelection(34);
+            User testUser3 = new User(1);
+            testUser3.setUserSelection(91);
+
+            board.addToBoard(testUser1);
+            board.addToBoard(testUser2);
+            board.addToBoard(testUser3);
+
+            //When
+            int result1 = board.at(9);
+            int result2 = board.at(34);
+            int result3 = board.at(91);
+            int result4 = board.at(70);
+
+            //Then
+            assertAll(() -> assertEquals(1, result1),
+                    () -> assertEquals(2, result2),
+                    () -> assertEquals(1, result3),
+                    () -> assertEquals(0, result4));
         }
 
     }
@@ -502,8 +530,8 @@ public class XOTestSuite {
         void testWinByDiagonalForUserX(){
             //Given
             GameMechanics gameMechanics = new GameMechanics();
-            Board board1 = initializeBoardWithX(7, 5, 3);
-            Board board2 = initializeBoardWithX(7, 6, 3);
+            Board board1 = initializeBoardWithX(1, 5, 9);
+            Board board2 = initializeBoardWithX(1, 6, 9);
 
             //When
             boolean result1 = gameMechanics.winByDiagonal(board1, userX);
@@ -519,8 +547,8 @@ public class XOTestSuite {
         void testWinByDiagonalForUserO(){
             //Given
             GameMechanics gameMechanics = new GameMechanics();
-            Board board1 = initializeBoardWithO(7, 5, 3);
-            Board board2 = initializeBoardWithO(7, 6, 3);
+            Board board1 = initializeBoardWithO(1, 5, 9);
+            Board board2 = initializeBoardWithO(1, 6, 9);
 
             //When
             boolean result1 = gameMechanics.winByDiagonal(board1, userO);
@@ -536,8 +564,8 @@ public class XOTestSuite {
         void testWinByAntiDiagonalForUserX(){
             //Given
             GameMechanics gameMechanics = new GameMechanics();
-            Board board1 = initializeBoardWithX(9, 5, 1);
-            Board board2 = initializeBoardWithX(9, 6, 1);
+            Board board1 = initializeBoardWithX(3, 5, 7);
+            Board board2 = initializeBoardWithX(3, 6, 7);
 
             //When
             boolean result1 = gameMechanics.winByAntiDiagonal(board1, userX);
@@ -553,8 +581,8 @@ public class XOTestSuite {
         void testWinByAntiDiagonalForUserO(){
             //Given
             GameMechanics gameMechanics = new GameMechanics();
-            Board board1 = initializeBoardWithO(9, 5, 1);
-            Board board2 = initializeBoardWithO(9, 6, 1);
+            Board board1 = initializeBoardWithO(3, 5, 7);
+            Board board2 = initializeBoardWithO(3, 6, 7);
 
             //When
             boolean result1 = gameMechanics.winByAntiDiagonal(board1, userO);
@@ -686,16 +714,252 @@ public class XOTestSuite {
     @Nested
     public class ExtendedMechanicsTestSuite {
 
+        private final User userX = new User(1);
+        private final User userO = new User(2);
 
+        private Board initializeBoardWithX(int[] arrayOfX){
+            Board board = new Board(10);
+            for(int position: arrayOfX){
+                userX.setUserSelection(position);
+                board.addToBoard(userX);
+            }
+            return board;
+        }
+
+        private Board initializeBoardWithO(int[] arrayOfX){
+            Board board = new Board(10);
+            for(int position: arrayOfX){
+                userO.setUserSelection(position);
+                board.addToBoard(userO);
+            }
+            return board;
+        }
 
         @Test
-        void testWinByRows() {
+        void testWinByRowsX() {
             //Given
-            Board board = new Board(10);
             ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {92, 93, 94, 95, 96};
+            Board board = initializeBoardWithX(arrayOfPositions);
 
             //When
+            boolean winResult = extendedGameMechanics.winByRows(board, userX);
 
+            //Then
+            assertTrue(winResult);
+
+        }
+
+        @Test
+        void testWinByRowsXNoWin5XInRow() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {92, 93, 95, 96, 97};
+            Board board = initializeBoardWithX(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByRows(board, userX);
+
+            //Then
+            assertFalse(winResult);
+        }
+
+        @Test
+        void testWinByRowsO() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {92, 93, 94, 95, 96};
+            Board board = initializeBoardWithO(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByRows(board, userO);
+
+            //Then
+            assertTrue(winResult);
+
+        }
+
+        @Test
+        void testWinByRowsXNoWin5OInRow() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {92, 93, 95, 96, 97};
+            Board board = initializeBoardWithO(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByRows(board, userO);
+
+            //Then
+            assertFalse(winResult);
+        }
+
+        @Test
+        void testWinByColumnsX() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {92, 82, 72, 62, 52};
+            Board board = initializeBoardWithX(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByColumns(board, userX);
+
+            //Then
+            assertTrue(winResult);
+        }
+
+        @Test
+        void testWinByColumnsXNoWin5XInRow() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {92, 93, 85, 96, 97};
+            Board board = initializeBoardWithX(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByColumns(board, userX);
+
+            //Then
+            assertFalse(winResult);
+        }
+
+        @Test
+        void testWinByColumnsO() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {92, 82, 72, 62, 52};
+            Board board = initializeBoardWithO(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByColumns(board, userO);
+
+            //Then
+            assertTrue(winResult);
+
+        }
+
+        @Test
+        void testWinByColumnsXNoWin5OInRow() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {92, 82, 73, 62, 52};
+            Board board = initializeBoardWithO(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByColumns(board, userO);
+
+            //Then
+            assertFalse(winResult);
+        }
+
+        @Test
+        void testWinByDiagonalX(){
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {96, 85, 74, 63, 52};
+            Board board = initializeBoardWithX(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByDiagonal(board, userX);
+
+            //Then
+            assertTrue(winResult);
+        }
+
+        @Test
+        void testWinDiagonalXNoWin5OInRow() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {96, 85, 75, 63, 52};
+            Board board = initializeBoardWithX(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByDiagonal(board, userX);
+
+            //Then
+            assertFalse(winResult);
+        }
+
+        @Test
+        void testWinByDiagonalO(){
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {96, 85, 74, 63, 52};
+            Board board = initializeBoardWithO(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByDiagonal(board, userO);
+
+            //Then
+            assertTrue(winResult);
+        }
+
+        @Test
+        void testWinDiagonalONoWin5OInRow() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {96, 85, 75, 63, 52};
+            Board board = initializeBoardWithO(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByDiagonal(board, userO);
+
+            //Then
+            assertFalse(winResult);
+        }
+
+        @Test
+        void testWinByAntiDiagonalX() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {96, 87, 78, 69, 60};
+            Board board = initializeBoardWithX(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByAntiDiagonal(board, userX);
+
+            //Then
+            assertTrue(winResult);
+        }
+
+        @Test
+        void testWinByAntiDiagonalXNoWin5XInRow() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {96, 87, 77, 69, 60};
+            Board board = initializeBoardWithX(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByAntiDiagonal(board, userX);
+
+            //Then
+            assertFalse(winResult);
+        }
+
+        @Test
+        void testWinByAntiDiagonalO() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {96, 87, 78, 69, 60};
+            Board board = initializeBoardWithO(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByAntiDiagonal(board, userO);
+
+            //Then
+            assertTrue(winResult);
+        }
+
+        @Test
+        void testWinByAntiDiagonalONoWin5OInRow() {
+            //Given
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+            int[] arrayOfPositions = {96, 87, 77, 69, 60};
+            Board board = initializeBoardWithO(arrayOfPositions);
+
+            //When
+            boolean winResult = extendedGameMechanics.winByAntiDiagonal(board, userO);
+
+            //Then
+            assertFalse(winResult);
         }
     }
 }

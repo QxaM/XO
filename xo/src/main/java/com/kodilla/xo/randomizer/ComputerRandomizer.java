@@ -4,8 +4,8 @@ import java.util.Random;
 
 public class ComputerRandomizer {
 
-    public static int randomComputerMove(){
+    public static int randomComputerMove(int range){
         Random random = new Random();
-        return random.nextInt(9) + 1;
+        return random.nextInt(range) + 1;
     }
 }

@@ -50,7 +50,8 @@ public class GameMechanics implements WinningMechanics{
     }
 
     public boolean validateSelection(Board board) throws SelectionOutOfScopeException, PositionAlreadySetException {
-        if (activeUser.getUserSelection() > 9 || activeUser.getUserSelection() < 1){
+        int boardArea = board.getBoard().length * board.getBoard().length;
+        if (activeUser.getUserSelection() > boardArea || activeUser.getUserSelection() < 1){
             throw new SelectionOutOfScopeException();
         }
         if (board.at(activeUser.getUserSelection()) != 0){
@@ -60,10 +61,11 @@ public class GameMechanics implements WinningMechanics{
     }
 
     public void simulateComputerMove(Board board){
+        int boardArea = board.getBoard().length * board.getBoard().length;
         boolean validComputerMove = false;
         int computerMove;
         while (!validComputerMove) {
-            computerMove = ComputerRandomizer.randomComputerMove();
+            computerMove = ComputerRandomizer.randomComputerMove(boardArea-1);
             activeUser.setUserSelection(computerMove);
             try{
                 validateSelection(board);
