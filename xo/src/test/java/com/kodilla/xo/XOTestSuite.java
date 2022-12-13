@@ -96,6 +96,29 @@ public class XOTestSuite {
                     () -> assertEquals(0, result4));
         }
 
+        @Test
+        void testAddToBoard10x10() {
+            //Given
+            Board board = new Board(10);
+            User testUser1 = new User(1);
+            testUser1.setUserSelection(9);
+            User testUser2 = new User(2);
+            testUser2.setUserSelection(34);
+            User testUser3 = new User(1);
+            testUser3.setUserSelection(91);
+
+            //When
+            board.addToBoard(testUser1);
+            board.addToBoard(testUser2);
+            board.addToBoard(testUser3);
+
+            //Then
+            assertAll(() -> assertEquals(1, board.getBoard()[0][8]),
+                    () -> assertEquals(2, board.getBoard()[2][0]),
+                    () -> assertEquals(1, board.getBoard()[0][2]),
+                    () -> assertEquals(0, board.getBoard()[0][0]));
+        }
+
     }
 
     @Nested
@@ -657,6 +680,22 @@ public class XOTestSuite {
 
             //Then
             assertFalse(result);
+        }
+    }
+
+    @Nested
+    public class ExtendedMechanicsTestSuite {
+
+
+
+        @Test
+        void testWinByRows() {
+            //Given
+            Board board = new Board(10);
+            ExtendedGameMechanics extendedGameMechanics = new ExtendedGameMechanics();
+
+            //When
+
         }
     }
 }
