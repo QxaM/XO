@@ -164,9 +164,8 @@ public class XOTestSuite {
         @Test
         void testGetEmptyList() {
             //Given
-            Board board = new Board(10);
             int[] positions = {10, 25, 64, 33, 98};
-            board = initializeBoardWithX(positions);
+            Board board = initializeBoardWithX(positions);
 
             //When
             ArrayList<Integer> emptyPositions = new ArrayList<>(board.getEmptyFields());

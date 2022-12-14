@@ -14,7 +14,7 @@ public class ExtendedGameMechanics extends GameMechanics{
             for(int j = 0; j<board.getBoard()[i].length; j++){
 
                 int numberOfElementsNeededToWin = 5 - elementCount;
-                int columnsLeftToCheck = board.getBoard()[i].length;
+                int columnsLeftToCheck = board.getBoard()[i].length - j;
 
                 if(columnsLeftToCheck < numberOfElementsNeededToWin){
                     break;
@@ -66,6 +66,7 @@ public class ExtendedGameMechanics extends GameMechanics{
         for (int i=0; i<=5; i++){
             int elementCountFirstDiagonal = 0;
             int elementCountSecondDiagonal = 0;
+
             for(int j=0; j<board.getBoard().length-i; j++){
                 int numberOfElementsNeededToWinOnFirstDiagonal = 5 - elementCountFirstDiagonal;
                 int numberOfElementsNeededToWinOnSecondDiagonal = 5 - elementCountSecondDiagonal;
@@ -99,6 +100,7 @@ public class ExtendedGameMechanics extends GameMechanics{
         for (int i=0; i<=5; i++){
             int elementCountFirstDiagonal = 0;
             int elementCountSecondDiagonal = 0;
+
             for(int j=0; j<=size-i; j++){
                 int numberOfElementsNeededToWinOnFirstDiagonal = 5 - elementCountFirstDiagonal;
                 int numberOfElementsNeededToWinOnSecondDiagonal = 5 - elementCountSecondDiagonal;

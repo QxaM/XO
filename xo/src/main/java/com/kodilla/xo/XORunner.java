@@ -5,10 +5,20 @@ import com.kodilla.xo.board.BoardInitializator;
 import com.kodilla.xo.board.BoardPrinter;
 import com.kodilla.xo.mechanics.*;
 import com.kodilla.xo.user.UserHandler;
+import javafx.application.Application;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+
+import java.awt.*;
 
 
-public class XORunner {
+public class XORunner extends Application {
     public static void main(String[] args){
+        launch(args);
+
         UserHandler userHandler = new UserHandler();
         GameMechanics gameMechanics = null;
         Board theBoard = null;
@@ -95,5 +105,20 @@ public class XORunner {
         }
 
         userHandler.userHandlerCleanUp();
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Group root = new Group();
+        Scene scene = new Scene(root, 300, 300, Paint.valueOf("Black"));
+
+        Rectangle r = new Rectangle(25, 25, 250, 250);
+        r.setFill(Paint.valueOf("Blue"));
+
+        root.getChildren().add(r);
+        primaryStage.setTitle("XO");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+
     }
 }
