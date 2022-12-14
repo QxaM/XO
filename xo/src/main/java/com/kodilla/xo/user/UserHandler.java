@@ -1,5 +1,7 @@
 package com.kodilla.xo.user;
 
+import com.kodilla.xo.board.Board;
+
 import java.util.Scanner;
 
 public class UserHandler {
@@ -44,14 +46,19 @@ public class UserHandler {
         System.out.println("Unknown board selection! Try again!");
     }
 
-    public void printHelp(){
+    public void printHelp(Board board){
         System.out.println("Enter selection with numeric keyboard");
         System.out.println("Board positions are mapped as below:");
-        for(int i=0; i<3; i++){
-            int mapping = 7 - i*3;
+        for(int i=0; i<board.getBoard().length; i++){
             System.out.print("|");
-            for(int j=0; j<3; j++){
-                System.out.print((mapping+j) + "|");
+            for(int j=0; j<board.getBoard().length; j++){
+                if(j != board.getBoard().length-1){
+                    System.out.print(i);
+                    System.out.print(j+1 + "|");
+                }else {
+                    System.out.print((i+1) * board.getBoard().length + "|");
+
+                }
             }
             System.out.println();
         }
@@ -72,6 +79,14 @@ public class UserHandler {
 
     public void printNotANumber(){
         System.out.println("This is not a number! Try again!");
+    }
+
+    public void printWrongRange(Board board) {
+        System.out.println("Entered position should be a number from 1 to " + board.getBoard().length * board.getBoard().length);
+    }
+
+    public void printPositionAlreadySet() {
+        System.out.println("Entered position has already been set! Try with different one");
     }
 
     public void printWinner(User user){

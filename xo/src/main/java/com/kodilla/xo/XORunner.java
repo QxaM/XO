@@ -57,7 +57,7 @@ public class XORunner {
             }
         }
 
-        userHandler.printHelp();
+        userHandler.printHelp(theBoard);
         BoardPrinter.printBoard(theBoard);
         while(!end){
             userHandler.printActiveUser(gameMechanics.getActiveUser());
@@ -71,9 +71,9 @@ public class XORunner {
                     try{
                         selectionValidated = gameMechanics.validateSelection(theBoard);
                     } catch (SelectionOutOfScopeException e){
-                        System.out.println("Entered position should be a number from 1 to 9");
+                        userHandler.printWrongRange(theBoard);
                     } catch (PositionAlreadySetException e) {
-                        System.out.println("Entered position has already been set! Try with different one");
+                        userHandler.printPositionAlreadySet();
                     }
                 }
             }
