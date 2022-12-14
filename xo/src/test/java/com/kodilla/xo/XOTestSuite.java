@@ -8,12 +8,26 @@ import com.kodilla.xo.user.User;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class XOTestSuite {
 
     @Nested
     public class BoardTestSuite {
+
+        private User userX = new User(1);
+
+        private Board initializeBoardWithX(int[] arrayOfX){
+            Board board = new Board(10);
+            for(int position: arrayOfX){
+                userX.setUserSelection(position);
+                board.addToBoard(userX);
+            }
+            return board;
+        }
 
         @Test
         void testPositionToRow() {
@@ -145,6 +159,20 @@ public class XOTestSuite {
                     () -> assertEquals(2, result2),
                     () -> assertEquals(1, result3),
                     () -> assertEquals(0, result4));
+        }
+
+        @Test
+        void testGetEmptyList() {
+            //Given
+            Board board = new Board(10);
+            int[] positions = {10, 25, 64, 33, 98};
+            board = initializeBoardWithX(positions);
+
+            //When
+            ArrayList<Integer> emptyPositions = new ArrayList<>(board.getEmptyFields());
+
+            //Then
+            assertEquals(95, emptyPositions.size());
         }
 
     }

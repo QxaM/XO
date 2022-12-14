@@ -5,6 +5,7 @@ import com.kodilla.xo.randomizer.ComputerRandomizer;
 import com.kodilla.xo.user.User;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class GameMechanics implements WinningMechanics{
     private final User userX = new User(1);
@@ -61,17 +62,12 @@ public class GameMechanics implements WinningMechanics{
     }
 
     public void simulateComputerMove(Board board){
-        int boardArea = board.getBoard().length * board.getBoard().length;
-        boolean validComputerMove = false;
-        int computerMove;
-        while (!validComputerMove) {
-            computerMove = ComputerRandomizer.randomComputerMove(boardArea-1);
-            activeUser.setUserSelection(computerMove);
-            try{
-                validateSelection(board);
-                validComputerMove = true;
-            } catch (SelectionOutOfScopeException | PositionAlreadySetException e) {
-            }
+        List<Integer> availableMoves = board.getEmptyFields();
+        int computerMove = ComputerRandomizer.randomComputerMoveFromAvailableList(availableMoves);
+        activeUser.setUserSelection(computerMove);
+        try{
+            validateSelection(board);
+        } catch (SelectionOutOfScopeException | PositionAlreadySetException e) {
         }
     }
 
