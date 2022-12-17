@@ -1,5 +1,8 @@
 package com.kodilla.xo;
 
+import com.kodilla.xo.JFX.BoardBuilder;
+import com.kodilla.xo.JFX.InputScanner;
+import com.kodilla.xo.JFX.ShapeAdder;
 import com.kodilla.xo.board.Board;
 import com.kodilla.xo.board.BoardInitializator;
 import com.kodilla.xo.board.BoardPrinter;
@@ -8,11 +11,10 @@ import com.kodilla.xo.user.UserHandler;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-
-import java.awt.*;
 
 
 public class XORunner extends Application {
@@ -110,15 +112,23 @@ public class XORunner extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Group root = new Group();
-        Scene scene = new Scene(root, 300, 300, Paint.valueOf("Black"));
+        Scene scene = new Scene(root, 500, 500, Paint.valueOf("Black"));
 
-        Rectangle r = new Rectangle(25, 25, 250, 250);
-        r.setFill(Paint.valueOf("Blue"));
+        Rectangle board = new Rectangle(25, 25, 450, 450);
+        board.setFill(Paint.valueOf("Blue"));
 
-        root.getChildren().add(r);
+        board.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            System.out.println("Test Button pressed at position: " + event.getSceneX() + ", " + event.getSceneY());
+            int enteredBoardPosition = InputScanner.convertScannedPositionToBoard(10, board, event.getSceneX(), event.getSceneY());
+            ShapeAdder.addCircle(root, enteredBoardPosition, 10, board);
+        });
+
+        root.getChildren().add(board);
+
+        BoardBuilder.BuildBoard(root, 10, 25, 25, 450, 450);
+
         primaryStage.setTitle("XO");
         primaryStage.setScene(scene);
         primaryStage.show();
-
     }
 }
