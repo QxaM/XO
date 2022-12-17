@@ -9,6 +9,7 @@ import com.kodilla.xo.board.BoardPrinter;
 import com.kodilla.xo.mechanics.*;
 import com.kodilla.xo.user.UserHandler;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
@@ -112,6 +113,16 @@ public class XORunner extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Group root = new Group();
+        UserHandler userHandler = new UserHandler();
+        GameMechanics gameMechanics = new ExtendedGameMechanics();
+        gameMechanics.initializeSelectedUserType('X');
+        Board theBoard = new Board(10);
+
+        userHandler.printGreeting();
+
+        userHandler.printHelp(theBoard);
+        BoardPrinter.printBoard(theBoard);
+
         Scene scene = new Scene(root, 500, 500, Paint.valueOf("Black"));
 
         Rectangle board = new Rectangle(25, 25, 450, 450);
@@ -119,13 +130,43 @@ public class XORunner extends Application {
 
         board.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
             System.out.println("Test Button pressed at position: " + event.getSceneX() + ", " + event.getSceneY());
-            int enteredBoardPosition = InputScanner.convertScannedPositionToBoard(10, board, event.getSceneX(), event.getSceneY());
-            ShapeAdder.addCircle(root, enteredBoardPosition, 10, board);
+            int enteredBoardPosition = InputScanner.convertScannedPositionToBoard(theBoard.getBoard().length, board, event.getSceneX(), event.getSceneY());
+            gameMechanics.getActiveUser().setUserSelection(enteredBoardPosition);
+            try{
+                gameMechanics.validateSelection(theBoard);
+                ShapeAdder.addShape(gameMechanics.getActiveUser(), root, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
+                theBoard.addToBoard(gameMechanics.getActiveUser());
+                gameMechanics.switchActiveUser();
+            } catch (SelectionOutOfScopeException e){
+                userHandler.printWrongRange(theBoard);
+            } catch (PositionAlreadySetException e) {
+                userHandler.printPositionAlreadySet();
+            }
         });
 
         root.getChildren().add(board);
+        BoardBuilder.BuildBoard(root, theBoard.getBoard().length, board);
 
-        BoardBuilder.BuildBoard(root, 10, 25, 25, 450, 450);
+        Thread thread = new Thread(() -> {
+            Runnable computerUpdater = () -> {
+                if(gameMechanics.activeUserIsComputer()) {
+                    gameMechanics.simulateComputerMove(theBoard);
+                    theBoard.addToBoard(gameMechanics.getActiveUser());
+                    ShapeAdder.addShape(gameMechanics.getActiveUser(), root, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
+                    gameMechanics.switchActiveUser();
+                }
+            };
+            while(true) {
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException e) {
+
+                }
+                Platform.runLater(computerUpdater);
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
 
         primaryStage.setTitle("XO");
         primaryStage.setScene(scene);

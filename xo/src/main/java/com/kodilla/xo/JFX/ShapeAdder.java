@@ -1,6 +1,7 @@
 package com.kodilla.xo.JFX;
 
 import com.kodilla.xo.board.PositionConverter;
+import com.kodilla.xo.user.User;
 import javafx.scene.Group;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
@@ -56,5 +57,14 @@ public class ShapeAdder {
 
         root.getChildren().add(line);
         root.getChildren().add(linePerpendicular);
+    }
+
+    public static void addShape(User user, Group root, int position, int size, Rectangle board){
+        if (user.getUserType() == 1) {
+            addCross(root, position, size, board);
+        }
+        if (user.getUserType() == 2) {
+            addCircle(root, position, size, board);
+        }
     }
 }
