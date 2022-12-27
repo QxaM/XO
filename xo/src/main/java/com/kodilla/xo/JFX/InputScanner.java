@@ -21,6 +21,6 @@ public class InputScanner {
         int row = positionYToRow(sizeY, positionY-board.getY());
         int column = positionXToColumn(sizeX, positionX-board.getX());
 
-        return PositionConverter.rowAndColumnToPosition(row, column);
+        return PositionConverter.rowAndColumnToPosition(size, row, column);
     }
 }

@@ -7,6 +7,7 @@ import com.kodilla.xo.board.Board;
 import com.kodilla.xo.board.BoardInitializator;
 import com.kodilla.xo.board.BoardPrinter;
 import com.kodilla.xo.mechanics.*;
+import com.kodilla.xo.randomizer.ComputerAI;
 import com.kodilla.xo.user.UserHandler;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -117,9 +118,10 @@ public class XORunner extends Application {
     public void start(Stage primaryStage) throws Exception {
         Group root = new Group();
         UserHandler userHandler = new UserHandler();
-        GameMechanics gameMechanics = new ExtendedGameMechanics();
+        GameMechanics gameMechanics = new GameMechanics();
         gameMechanics.initializeSelectedUserType('X');
-        Board theBoard = new Board(10);
+        ComputerAI computerAI = new ComputerAI(gameMechanics.getUserX(), gameMechanics.getUserO());
+        Board theBoard = new Board(3);
 
         userHandler.printGreeting();
 
@@ -162,10 +164,22 @@ public class XORunner extends Application {
         Thread computerMoveThread = new Thread(() -> {
             Runnable computerUpdater = () -> {
                 if(gameMechanics.activeUserIsComputer()) {
-                    gameMechanics.simulateComputerMove(theBoard);
-                    theBoard.addToBoard(gameMechanics.getActiveUser());
-                    ShapeAdder.addShape(gameMechanics.getActiveUser(), root, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
-                    gameMechanics.switchActiveUser();
+                    if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())){
+                        userHandler.printWinner(gameMechanics.getActiveUser());
+                        primaryStage.close();
+                    } else {
+                        if(gameMechanics.draw(theBoard)){
+                            userHandler.printDraw();
+                            primaryStage.close();
+                        } else {
+                            int computerMove = computerAI.findBestMove(theBoard);
+                            gameMechanics.getActiveUser().setUserSelection(computerMove);
+                            theBoard.addToBoard(gameMechanics.getActiveUser());
+                            ShapeAdder.addShape(gameMechanics.getActiveUser(), root, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
+
+                            gameMechanics.switchActiveUser();
+                        }
+                    }
                 }
             };
             while(true) {
@@ -177,28 +191,6 @@ public class XORunner extends Application {
         });
         computerMoveThread.setDaemon(true);
         computerMoveThread.start();
-
-        Thread finishGameThread = new Thread(() -> {
-           Runnable endLogic = () -> {
-               if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())){
-                   userHandler.printWinner(gameMechanics.getActiveUser());
-                   primaryStage.close();
-               } else {
-                   if(gameMechanics.draw(theBoard)){
-                       userHandler.printDraw();
-                       primaryStage.close();
-                   }
-               }
-           };
-           while(true) {
-               try {
-                   Thread.sleep(250);
-               } catch (InterruptedException e) {}
-               Platform.runLater(endLogic);
-           }
-        });
-        finishGameThread.setDaemon(true);
-        finishGameThread.start();
 
         primaryStage.setTitle("XO");
         primaryStage.setScene(scene);

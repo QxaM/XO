@@ -16,8 +16,6 @@ public interface WinningMechanics {
     }
 
     default boolean draw(Board board){
-        return Arrays.stream(board.getBoard())
-                .flatMapToInt(Arrays::stream)
-                .allMatch(n -> (n != 0));
+        return board.isFull();
     }
 }

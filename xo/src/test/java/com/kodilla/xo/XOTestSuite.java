@@ -4,6 +4,7 @@ import com.kodilla.xo.board.Board;
 import com.kodilla.xo.board.BoardInitializator;
 import com.kodilla.xo.board.PositionConverter;
 import com.kodilla.xo.mechanics.*;
+import com.kodilla.xo.randomizer.ComputerAI;
 import com.kodilla.xo.user.User;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -162,7 +163,7 @@ public class XOTestSuite {
         }
 
         @Test
-        void testGetEmptyList() {
+        void testGetEmptyList10x10() {
             //Given
             int[] positions = {10, 25, 64, 33, 98};
             Board board = initializeBoardWithX(positions);
@@ -172,6 +173,90 @@ public class XOTestSuite {
 
             //Then
             assertEquals(95, emptyPositions.size());
+        }
+
+        @Test
+        void testGetEmptyList3x3() {
+            //Given
+            Board board = new Board(3);
+            userX.setUserSelection(1);
+            board.addToBoard(userX);
+            userX.setUserSelection(3);
+            board.addToBoard(userX);
+
+            //When
+            ArrayList<Integer> emptyPositions = new ArrayList<>(board.getEmptyFields());
+
+            //Then
+            assertEquals(7, emptyPositions.size());
+        }
+
+        @Test
+        void isFull3x3(){
+            //Given
+            Board board = new Board(3);
+            User user = new User(1);
+            for(int i = 1; i < 10; i++) {
+                user.setUserSelection(i);
+                board.addToBoard(user);
+            }
+
+            //When
+            boolean result = board.isFull();
+
+            //Then
+            assertTrue(result);
+        }
+
+        @Test
+        void isFull3x3NotFull() {
+            //Given
+            Board board = new Board(3);
+            User user = new User(1);
+            for(int i = 2; i < 10; i++) {
+                user.setUserSelection(i);
+                board.addToBoard(user);
+            }
+
+            //When
+            boolean result = board.isFull();
+
+            //Then
+            assertFalse(result);
+        }
+
+        @Test
+        void isFull10x10(){
+            //Given
+            Board board = new Board(10);
+            User user = new User(1);
+            for(int i = 1; i <= 100; i++) {
+                user.setUserSelection(i);
+                board.addToBoard(user);
+            }
+
+            //When
+            boolean result = board.isFull();
+
+            //Then
+            assertTrue(result);
+        }
+
+        @Test
+        void isFull10x10NotFull(){
+            //Given
+            Board board = new Board(10);
+            User user = new User(1);
+            for(int i = 2; i <= 100; i++) {
+                user.setUserSelection(i);
+                board.addToBoard(user);
+            }
+
+            //When
+            boolean result = board.isFull();
+
+            //Then
+            assertFalse(result);
         }
 
     }
@@ -987,6 +1072,274 @@ public class XOTestSuite {
 
             //Then
             assertFalse(winResult);
+        }
+    }
+
+    @Nested
+    public class ComputerAITestSuite {
+
+        private final User userX = new User(1);
+        private final User userO = new User(2);
+        @Test
+        void testXIsComputer() {
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+
+            //When
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+
+            //Then
+            assertEquals(userX, computerAI.getMaximizerUser());
+            assertEquals(userO, computerAI.getMinimizerUser());
+        }
+
+        @Test
+        void testOIsComputer() {
+            //Given
+            userX.setComputer(false);
+            userO.setComputer(true);
+
+            //When
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+
+            //Then
+            assertEquals(userO, computerAI.getMaximizerUser());
+            assertEquals(userX, computerAI.getMinimizerUser());
+        }
+
+        @Test
+        void testEvaluateMaximizerWon() {
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userX.setUserSelection(1);
+            board.addToBoard(userX);
+            userX.setUserSelection(2);
+            board.addToBoard(userX);
+            userX.setUserSelection(3);
+            board.addToBoard(userX);
+
+            //When
+            int score = computerAI.evaluate(board);
+
+            //Then
+            assertEquals(100, score);
+        }
+
+        @Test
+        void testEvaluateMinimizerWon() {
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userO.setUserSelection(1);
+            board.addToBoard(userO);
+            userO.setUserSelection(2);
+            board.addToBoard(userO);
+            userO.setUserSelection(3);
+            board.addToBoard(userO);
+
+            //When
+            int score = computerAI.evaluate(board);
+
+            //Then
+            assertEquals(-100, score);
+        }
+
+        @Test
+        void testEvaluateNoWinner() {
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userO.setUserSelection(1);
+            board.addToBoard(userO);
+            userX.setUserSelection(2);
+            board.addToBoard(userX);
+            userO.setUserSelection(3);
+            board.addToBoard(userO);
+
+            //When
+            int score = computerAI.evaluate(board);
+
+            //Then
+            assertEquals(0, score);
+        }
+
+        @Test
+        void testMinMaxWinIn1Depth() {
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userX.setUserSelection(1);
+            board.addToBoard(userX);
+            userX.setUserSelection(3);
+            board.addToBoard(userX);
+
+            //When
+            int score = computerAI.minmax(board, 0, true);
+
+            //Then
+            assertEquals(99, score);
+        }
+
+        @Test
+        void testFindBestMove1ToWin() {
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userX.setUserSelection(1);
+            board.addToBoard(userX);
+            userX.setUserSelection(3);
+            board.addToBoard(userX);
+
+            //When
+            int moveVal = computerAI.findBestMove(board);
+
+            //Then
+            assertEquals(2, moveVal);
+        }
+
+        @Test
+        void testFindBestMove1ToWinDiagonal() {
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userX.setUserSelection(1);
+            board.addToBoard(userX);
+            userX.setUserSelection(9);
+            board.addToBoard(userX);
+
+            //When
+            int moveVal = computerAI.findBestMove(board);
+
+            //Then
+            assertEquals(5, moveVal);
+        }
+
+        @Test
+        void testFindBestMoveForOpponentNotToWin() {
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userO.setUserSelection(1);
+            board.addToBoard(userO);
+            userO.setUserSelection(3);
+            board.addToBoard(userO);
+
+            //When
+            int moveVal = computerAI.findBestMove(board);
+
+            //Then
+            assertEquals(2, moveVal);
+        }
+
+        @Test
+        void testFindBestMoveForOpponentNotToWinDiagonal() {
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userO.setUserSelection(1);
+            board.addToBoard(userO);
+            userO.setUserSelection(9);
+            board.addToBoard(userO);
+
+            //When
+            int moveVal = computerAI.findBestMove(board);
+
+            //Then
+            assertEquals(5, moveVal);
+        }
+
+        @Test
+        void testFindBestMove1ToWinO() {
+            //Given
+            userX.setComputer(false);
+            userO.setComputer(true);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userO.setUserSelection(1);
+            board.addToBoard(userO);
+            userO.setUserSelection(3);
+            board.addToBoard(userO);
+
+            //When
+            int moveVal = computerAI.findBestMove(board);
+
+            //Then
+            assertEquals(2, moveVal);
+        }
+
+        @Test
+        void testFindBestMove1ToWinDiagonalO() {
+            //Given
+            userX.setComputer(false);
+            userO.setComputer(true);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userO.setUserSelection(1);
+            board.addToBoard(userO);
+            userO.setUserSelection(9);
+            board.addToBoard(userO);
+
+            //When
+            int moveVal = computerAI.findBestMove(board);
+
+            //Then
+            assertEquals(5, moveVal);
+        }
+
+        @Test
+        void testFindBestMoveForOpponentNotToWinO() {
+            //Given
+            userX.setComputer(false);
+            userO.setComputer(true);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userO.setUserSelection(1);
+            board.addToBoard(userO);
+            userO.setUserSelection(3);
+            board.addToBoard(userO);
+
+            //When
+            int moveVal = computerAI.findBestMove(board);
+
+            //Then
+            assertEquals(2, moveVal);
+        }
+
+        @Test
+        void testFindBestMoveForOpponentNotToWinDiagonalO() {
+            //Given
+            userX.setComputer(false);
+            userO.setComputer(true);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(3);
+            userX.setUserSelection(1);
+            board.addToBoard(userX);
+            userX.setUserSelection(9);
+            board.addToBoard(userX);
+
+            //When
+            int moveVal = computerAI.findBestMove(board);
+
+            //Then
+            assertEquals(5, moveVal);
         }
     }
 }

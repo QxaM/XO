@@ -22,6 +22,13 @@ public final class Board {
         board[positionRow][positionColumn] = activeUser.getUserType();
     }
 
+    public void removeFromBoard(int position){
+        int positionRow = PositionConverter.positionToRow(position, board.length);
+        int positionColumn = PositionConverter.positionToColumn(position, board[positionRow].length);
+
+        board[positionRow][positionColumn] = 0;
+    }
+
     public int at(int i){
         int positionRow = PositionConverter.positionToRow(i, board.length);
         int positionColumn = PositionConverter.positionToColumn(i, board[positionRow].length);
@@ -30,12 +37,19 @@ public final class Board {
     }
 
     public List<Integer> getEmptyFields() {
-        return IntStream.range(0, board.length)
+        List<Integer> returnList = IntStream.range(0, board.length)
                 .flatMap(i -> IntStream.range(0, board[i].length)
                         .filter(j -> board[i][j] == 0)
-                        .map(j -> PositionConverter.rowAndColumnToPosition(i, j)))
+                        .map(j -> PositionConverter.rowAndColumnToPosition(board.length, i, j)))
                 .boxed().collect(Collectors.toList());
+        return returnList;
 
+    }
+
+    public boolean isFull() {
+        return Arrays.stream(board)
+                .flatMapToInt(Arrays::stream)
+                .allMatch(n -> (n != 0));
     }
 
     public int[][] getBoard() {
