@@ -12,9 +12,12 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 
@@ -123,11 +126,10 @@ public class XORunner extends Application {
         userHandler.printHelp(theBoard);
         BoardPrinter.printBoard(theBoard);
 
-        Scene scene = new Scene(root, 500, 500, Paint.valueOf("Black"));
+        Scene scene = new Scene(root, 700, 700, Paint.valueOf("Black"));
 
-        Rectangle board = new Rectangle(25, 25, 450, 450);
+        Rectangle board = new Rectangle(100, 100, 500, 500);
         board.setFill(Paint.valueOf("Blue"));
-
         board.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
             System.out.println("Test Button pressed at position: " + event.getSceneX() + ", " + event.getSceneY());
             int enteredBoardPosition = InputScanner.convertScannedPositionToBoard(theBoard.getBoard().length, board, event.getSceneX(), event.getSceneY());
@@ -143,11 +145,21 @@ public class XORunner extends Application {
                 userHandler.printPositionAlreadySet();
             }
         });
-
         root.getChildren().add(board);
+
         BoardBuilder.BuildBoard(root, theBoard.getBoard().length, board);
 
-        Thread thread = new Thread(() -> {
+        Button exitButton = new Button("Exit!");
+        exitButton.setMinWidth(100);
+        exitButton.setMinHeight(40);
+        exitButton.setLayoutX(300);
+        exitButton.setLayoutY(660);
+        Font font = Font.font("Arial", FontWeight.BOLD, 24);
+        exitButton.setFont(font);
+        exitButton.setOnAction(event -> primaryStage.close());
+        root.getChildren().add(exitButton);
+
+        Thread computerMoveThread = new Thread(() -> {
             Runnable computerUpdater = () -> {
                 if(gameMechanics.activeUserIsComputer()) {
                     gameMechanics.simulateComputerMove(theBoard);
@@ -159,14 +171,34 @@ public class XORunner extends Application {
             while(true) {
                 try {
                     Thread.sleep(250);
-                } catch (InterruptedException e) {
-
-                }
+                } catch (InterruptedException e) {}
                 Platform.runLater(computerUpdater);
             }
         });
-        thread.setDaemon(true);
-        thread.start();
+        computerMoveThread.setDaemon(true);
+        computerMoveThread.start();
+
+        Thread finishGameThread = new Thread(() -> {
+           Runnable endLogic = () -> {
+               if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())){
+                   userHandler.printWinner(gameMechanics.getActiveUser());
+                   primaryStage.close();
+               } else {
+                   if(gameMechanics.draw(theBoard)){
+                       userHandler.printDraw();
+                       primaryStage.close();
+                   }
+               }
+           };
+           while(true) {
+               try {
+                   Thread.sleep(250);
+               } catch (InterruptedException e) {}
+               Platform.runLater(endLogic);
+           }
+        });
+        finishGameThread.setDaemon(true);
+        finishGameThread.start();
 
         primaryStage.setTitle("XO");
         primaryStage.setScene(scene);
