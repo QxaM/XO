@@ -121,7 +121,7 @@ public class XORunner extends Application {
         GameMechanics gameMechanics = new GameMechanics();
         gameMechanics.initializeSelectedUserType('X');
         ComputerAI computerAI = new ComputerAI(gameMechanics.getUserX(), gameMechanics.getUserO());
-        Board theBoard = new Board(3);
+        Board theBoard = new Board(10);
 
         userHandler.printGreeting();
 

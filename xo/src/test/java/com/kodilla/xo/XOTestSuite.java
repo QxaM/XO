@@ -1184,7 +1184,7 @@ public class XOTestSuite {
             board.addToBoard(userX);
 
             //When
-            int score = computerAI.minmax(board, 0, true);
+            int score = computerAI.minmax(board, 0, true, -1000, 1000, 0);
 
             //Then
             assertEquals(99, score);
@@ -1340,6 +1340,30 @@ public class XOTestSuite {
 
             //Then
             assertEquals(5, moveVal);
+        }
+
+        @Test
+        void testFindBestMoveToWin10x10(){
+            //Given
+            userX.setComputer(true);
+            userO.setComputer(false);
+            ComputerAI computerAI = new ComputerAI(userX, userO);
+            Board board = new Board(10);
+            userX.setUserSelection(1);
+            board.addToBoard(userX);
+            userX.setUserSelection(3);
+            board.addToBoard(userX);
+            userX.setUserSelection(4);
+            board.addToBoard(userX);
+            userX.setUserSelection(5);
+            board.addToBoard(userX);
+
+
+            //When
+            int moveVal = computerAI.findBestMove(board);
+
+            //Then
+            assertEquals(2, moveVal);
         }
     }
 }
