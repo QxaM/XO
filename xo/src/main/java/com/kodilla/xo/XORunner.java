@@ -14,6 +14,7 @@ import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -23,6 +24,11 @@ import javafx.stage.Stage;
 
 
 public class XORunner extends Application {
+
+    Board theBoard;
+    GameMechanics gameMechanics;
+    ComputerAI computerAI;
+
     public static void main(String[] args){
         launch(args);
 
@@ -116,21 +122,163 @@ public class XORunner extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Group root = new Group();
+        Group boardRoot = new Group();
+        Group menuRoot = new Group();
         UserHandler userHandler = new UserHandler();
-        GameMechanics gameMechanics = new GameMechanics();
-        gameMechanics.initializeSelectedUserType('X');
-        ComputerAI computerAI = new ComputerAI(gameMechanics.getUserX(), gameMechanics.getUserO());
-        Board theBoard = new Board(10);
+        DifficultyScanner difficultyScanner = new DifficultyScanner();
 
-        userHandler.printGreeting();
-
-        userHandler.printHelp(theBoard);
-        BoardPrinter.printBoard(theBoard);
-
-        Scene scene = new Scene(root, 700, 700, Paint.valueOf("Black"));
+        Scene boardScene = new Scene(boardRoot, 700, 700, Paint.valueOf("Black"));
+        Scene menuScene = new Scene(menuRoot, 700, 700, Paint.valueOf("Black"));
 
         Rectangle board = new Rectangle(100, 100, 500, 500);
+
+        Thread computerMoveThread = new Thread(() -> {
+            Runnable computerUpdater = () -> {
+                if(gameMechanics.activeUserIsComputer()) {
+                    if (difficultyScanner.getDifficulty() == 0) {
+                        gameMechanics.simulateComputerMove(theBoard);
+                    }
+                    if (difficultyScanner.getDifficulty() == 1) {
+                        int computerMove = computerAI.findBestMove(theBoard);
+                        gameMechanics.getActiveUser().setUserSelection(computerMove);
+                    }
+                    theBoard.addToBoard(gameMechanics.getActiveUser());
+                    ShapeAdder.addShape(gameMechanics.getActiveUser(), boardRoot, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
+
+                    if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())) {
+                        userHandler.printWinner(gameMechanics.getActiveUser());
+                        primaryStage.close();
+                    }
+                    if (gameMechanics.draw(theBoard)) {
+                        userHandler.printDraw();
+                        primaryStage.close();
+                    }
+
+                    gameMechanics.switchActiveUser();
+                }
+            };
+            while(true) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {}
+                Platform.runLater(computerUpdater);
+            }
+        });
+        computerMoveThread.setDaemon(true);
+
+        //Building menuScene
+        Button exitButtonMenu = new Button("Exit!");
+        exitButtonMenu.setMinWidth(100);
+        exitButtonMenu.setMinHeight(40);
+        exitButtonMenu.setLayoutX(600);
+        exitButtonMenu.setLayoutY(660);
+        Font font = Font.font("Arial", FontWeight.BOLD, 24);
+        exitButtonMenu.setFont(font);
+        exitButtonMenu.setOnAction(event -> primaryStage.close());
+
+        Font fontMenu = Font.font("Arial", FontWeight.NORMAL, 18);
+        ToggleButton playerTypeSelection = new ToggleButton("X selected");
+        playerTypeSelection.setMinWidth(250);
+        playerTypeSelection.setMinHeight(40);
+        playerTypeSelection.setLayoutX(225);
+        playerTypeSelection.setLayoutY(80);
+        playerTypeSelection.setFont(fontMenu);
+        playerTypeSelection.setVisible(true);
+        playerTypeSelection.setOnAction(event -> {
+            if (playerTypeSelection.isSelected()) {
+                playerTypeSelection.setText("O selected");
+            } else {
+                playerTypeSelection.setText("X selected");
+            }
+        });
+
+        ToggleButton playerSelection = new ToggleButton("Player vs Computer");
+        playerSelection.setMinWidth(250);
+        playerSelection.setMinHeight(40);
+        playerSelection.setLayoutX(225);
+        playerSelection.setLayoutY(20);
+        playerSelection.setFont(fontMenu);
+        playerSelection.setOnAction(event -> {
+            if (playerSelection.isSelected()) {
+                playerSelection.setText("Player vs Player");
+                playerTypeSelection.setVisible(false);
+            } else {
+                playerSelection.setText("Player vs Computer");
+                playerTypeSelection.setVisible(true);
+            }
+        });
+
+        ToggleButton boardSelection = new ToggleButton("3x3 Board");
+        boardSelection.setMinWidth(250);
+        boardSelection.setMinHeight(40);
+        boardSelection.setLayoutX(225);
+        boardSelection.setLayoutY(140);
+        boardSelection.setFont(fontMenu);
+        boardSelection.setOnAction(event -> {
+            if (boardSelection.isSelected()) {
+                boardSelection.setText("10x10 Board");
+            } else {
+                boardSelection.setText("3x3 Board");
+            }
+        });
+
+        ToggleButton difficultySelection = new ToggleButton("Easy");
+        difficultySelection.setMinWidth(250);
+        difficultySelection.setMinHeight(40);
+        difficultySelection.setLayoutX(225);
+        difficultySelection.setLayoutY(200);
+        difficultySelection.setFont(fontMenu);
+        difficultySelection.setOnAction(event -> {
+            if (difficultySelection.isSelected()) {
+                difficultySelection.setText("Hard");
+                difficultyScanner.setDifficulty(1);
+            } else {
+                difficultySelection.setText("Easy");
+                difficultyScanner.setDifficulty(0);
+            }
+        });
+
+        Button startButton = new Button("START");
+        startButton.setMinWidth(150);
+        startButton.setMinHeight(80);
+        startButton.setLayoutX(275);
+        startButton.setLayoutY(620);
+        Font fontStart = Font.font("Arial", FontWeight.BOLD, 24);
+        startButton.setFont(fontStart);
+        startButton.setOnAction(event -> {
+            if(boardSelection.isSelected()){
+                theBoard = new Board(10);
+                gameMechanics = new ExtendedGameMechanics();
+            } else {
+                theBoard = new Board(3);
+                gameMechanics = new GameMechanics();
+            }
+
+            if(playerSelection.isSelected()){
+                try{
+                    gameMechanics.initializePlayers('2');
+                }catch(WrongNumberOfPlayers e) {}
+            } else {
+                if(playerTypeSelection.isSelected()) {
+                    try {
+                        gameMechanics.initializeSelectedUserType('O');
+                    } catch (UnknownSelection e) {}
+                } else {
+                    try {
+                        gameMechanics.initializeSelectedUserType('X');
+                    } catch (UnknownSelection e) {}
+                }
+                computerAI = new ComputerAI(gameMechanics.getUserX(), gameMechanics.getUserO());
+            }
+            BoardBuilder.BuildBoard(boardRoot, theBoard.getBoard().length, board);
+            computerMoveThread.start();
+            primaryStage.setScene(boardScene);
+        });
+
+        menuRoot.getChildren().addAll(startButton, exitButtonMenu, playerSelection, boardSelection, playerTypeSelection,
+                                        difficultySelection);
+
+        //Building playing board scene
         board.setFill(Paint.valueOf("Blue"));
         board.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
             System.out.println("Test Button pressed at position: " + event.getSceneX() + ", " + event.getSceneY());
@@ -138,8 +286,18 @@ public class XORunner extends Application {
             gameMechanics.getActiveUser().setUserSelection(enteredBoardPosition);
             try{
                 gameMechanics.validateSelection(theBoard);
-                ShapeAdder.addShape(gameMechanics.getActiveUser(), root, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
+                ShapeAdder.addShape(gameMechanics.getActiveUser(), boardRoot, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
                 theBoard.addToBoard(gameMechanics.getActiveUser());
+
+                if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())) {
+                    userHandler.printWinner(gameMechanics.getActiveUser());
+                    primaryStage.close();
+                }
+                if (gameMechanics.draw(theBoard)) {
+                    userHandler.printDraw();
+                    primaryStage.close();
+                }
+
                 gameMechanics.switchActiveUser();
             } catch (SelectionOutOfScopeException e){
                 userHandler.printWrongRange(theBoard);
@@ -147,53 +305,19 @@ public class XORunner extends Application {
                 userHandler.printPositionAlreadySet();
             }
         });
-        root.getChildren().add(board);
+        boardRoot.getChildren().add(board);
 
-        BoardBuilder.BuildBoard(root, theBoard.getBoard().length, board);
-
-        Button exitButton = new Button("Exit!");
-        exitButton.setMinWidth(100);
-        exitButton.setMinHeight(40);
-        exitButton.setLayoutX(300);
-        exitButton.setLayoutY(660);
-        Font font = Font.font("Arial", FontWeight.BOLD, 24);
-        exitButton.setFont(font);
-        exitButton.setOnAction(event -> primaryStage.close());
-        root.getChildren().add(exitButton);
-
-        Thread computerMoveThread = new Thread(() -> {
-            Runnable computerUpdater = () -> {
-                if(gameMechanics.activeUserIsComputer()) {
-                    if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())){
-                        userHandler.printWinner(gameMechanics.getActiveUser());
-                        primaryStage.close();
-                    } else {
-                        if(gameMechanics.draw(theBoard)){
-                            userHandler.printDraw();
-                            primaryStage.close();
-                        } else {
-                            int computerMove = computerAI.findBestMove(theBoard);
-                            gameMechanics.getActiveUser().setUserSelection(computerMove);
-                            theBoard.addToBoard(gameMechanics.getActiveUser());
-                            ShapeAdder.addShape(gameMechanics.getActiveUser(), root, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
-
-                            gameMechanics.switchActiveUser();
-                        }
-                    }
-                }
-            };
-            while(true) {
-                try {
-                    Thread.sleep(250);
-                } catch (InterruptedException e) {}
-                Platform.runLater(computerUpdater);
-            }
-        });
-        computerMoveThread.setDaemon(true);
-        computerMoveThread.start();
+        Button exitButtonBoard = new Button("Exit!");
+        exitButtonBoard.setMinWidth(100);
+        exitButtonBoard.setMinHeight(40);
+        exitButtonBoard.setLayoutX(300);
+        exitButtonBoard.setLayoutY(660);
+        exitButtonBoard.setFont(font);
+        exitButtonBoard.setOnAction(event -> primaryStage.close());
+        boardRoot.getChildren().add(exitButtonBoard);
 
         primaryStage.setTitle("XO");
-        primaryStage.setScene(scene);
+        primaryStage.setScene(menuScene);
         primaryStage.show();
     }
 }
