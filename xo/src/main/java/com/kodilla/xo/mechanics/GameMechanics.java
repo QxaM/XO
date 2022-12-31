@@ -1,6 +1,7 @@
 package com.kodilla.xo.mechanics;
 
 import com.kodilla.xo.board.Board;
+import com.kodilla.xo.randomizer.ComputerAI;
 import com.kodilla.xo.randomizer.ComputerRandomizer;
 import com.kodilla.xo.user.User;
 
@@ -11,6 +12,10 @@ public class GameMechanics implements WinningMechanics{
     private final User userX = new User(1);
     private final User userO = new User(2);
     private User activeUser = userX;
+
+    private DifficultyScanner difficultyScanner = new DifficultyScanner();
+
+    private ComputerAI computerAI = null;
 
     public boolean initializePlayers(char numberOfPlayers) throws WrongNumberOfPlayers{
         if(numberOfPlayers != '2' && numberOfPlayers != '1'){
@@ -36,6 +41,7 @@ public class GameMechanics implements WinningMechanics{
             userX.setComputer(true);
             userO.setComputer(false);
         }
+        computerAI = new ComputerAI(userX, userO);
     }
 
     public boolean activeUserIsComputer(){
@@ -62,13 +68,22 @@ public class GameMechanics implements WinningMechanics{
     }
 
     public void simulateComputerMove(Board board){
-        List<Integer> availableMoves = board.getEmptyFields();
-        int computerMove = ComputerRandomizer.randomComputerMoveFromAvailableList(availableMoves);
-        activeUser.setUserSelection(computerMove);
-        try{
-            validateSelection(board);
-        } catch (SelectionOutOfScopeException | PositionAlreadySetException e) {
+        int computerMove = 0;
+        if (difficultyScanner.getDifficulty() == 0) {
+            List<Integer> availableMoves = board.getEmptyFields();
+            computerMove = ComputerRandomizer.randomComputerMoveFromAvailableList(availableMoves);
         }
+        if (difficultyScanner.getDifficulty() == 1) {
+            computerMove = computerAI.findBestMove(board);
+        }
+        activeUser.setUserSelection(computerMove);
+    }
+
+    public void setEasyDifficulty() {
+        this.difficultyScanner.setDifficulty(0);
+    }
+    public void setHardDifficulty() {
+        this.difficultyScanner.setDifficulty(1);
     }
 
     public User getActiveUser() {

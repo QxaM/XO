@@ -7,19 +7,26 @@ import com.kodilla.xo.board.Board;
 import com.kodilla.xo.board.BoardInitializator;
 import com.kodilla.xo.board.BoardPrinter;
 import com.kodilla.xo.mechanics.*;
-import com.kodilla.xo.randomizer.ComputerAI;
 import com.kodilla.xo.user.UserHandler;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 
@@ -27,7 +34,6 @@ public class XORunner extends Application {
 
     Board theBoard;
     GameMechanics gameMechanics;
-    ComputerAI computerAI;
 
     public static void main(String[] args){
         launch(args);
@@ -124,34 +130,46 @@ public class XORunner extends Application {
     public void start(Stage primaryStage) throws Exception {
         Group boardRoot = new Group();
         Group menuRoot = new Group();
+        StackPane endRoot = new StackPane();
         UserHandler userHandler = new UserHandler();
-        DifficultyScanner difficultyScanner = new DifficultyScanner();
 
         Scene boardScene = new Scene(boardRoot, 700, 700, Paint.valueOf("Black"));
         Scene menuScene = new Scene(menuRoot, 700, 700, Paint.valueOf("Black"));
+        Scene endGameScene = new Scene(endRoot, 700, 700, Paint.valueOf("Black"));
+        Font font = Font.font("Arial", FontWeight.BOLD, 24);
 
         Rectangle board = new Rectangle(100, 100, 500, 500);
+
+        //Building Scene for finishing games
+        endRoot.setBackground(new Background(new BackgroundFill(Paint.valueOf("Black"), CornerRadii.EMPTY, Insets.EMPTY)));
+        Font finishGameFont = Font.font("Arial", FontWeight.EXTRA_BOLD, 28);
+        Text finishGameText = new Text("Test");
+        finishGameText.setFont(finishGameFont);
+        finishGameText.setTextAlignment(TextAlignment.CENTER);
+        finishGameText.setFill(Paint.valueOf("White"));
+        StackPane.setAlignment(finishGameText, Pos.CENTER);
+
+        Button exitButtonFinished = new Button("Exit!");
+        exitButtonFinished.setFont(font);
+        exitButtonFinished.setOnAction(event -> primaryStage.close());
+        StackPane.setAlignment(exitButtonFinished, Pos.BOTTOM_CENTER);
+
+        endRoot.getChildren().addAll(finishGameText, exitButtonFinished);
 
         Thread computerMoveThread = new Thread(() -> {
             Runnable computerUpdater = () -> {
                 if(gameMechanics.activeUserIsComputer()) {
-                    if (difficultyScanner.getDifficulty() == 0) {
-                        gameMechanics.simulateComputerMove(theBoard);
-                    }
-                    if (difficultyScanner.getDifficulty() == 1) {
-                        int computerMove = computerAI.findBestMove(theBoard);
-                        gameMechanics.getActiveUser().setUserSelection(computerMove);
-                    }
+                    gameMechanics.simulateComputerMove(theBoard);
                     theBoard.addToBoard(gameMechanics.getActiveUser());
                     ShapeAdder.addShape(gameMechanics.getActiveUser(), boardRoot, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
 
                     if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())) {
-                        userHandler.printWinner(gameMechanics.getActiveUser());
-                        primaryStage.close();
+                        finishGameText.setText("Computer Wins!");
+                        primaryStage.setScene(endGameScene);
                     }
                     if (gameMechanics.draw(theBoard)) {
-                        userHandler.printDraw();
-                        primaryStage.close();
+                        finishGameText.setText("This is a draw!");
+                        primaryStage.setScene(endGameScene);
                     }
 
                     gameMechanics.switchActiveUser();
@@ -172,7 +190,6 @@ public class XORunner extends Application {
         exitButtonMenu.setMinHeight(40);
         exitButtonMenu.setLayoutX(600);
         exitButtonMenu.setLayoutY(660);
-        Font font = Font.font("Arial", FontWeight.BOLD, 24);
         exitButtonMenu.setFont(font);
         exitButtonMenu.setOnAction(event -> primaryStage.close());
 
@@ -231,10 +248,8 @@ public class XORunner extends Application {
         difficultySelection.setOnAction(event -> {
             if (difficultySelection.isSelected()) {
                 difficultySelection.setText("Hard");
-                difficultyScanner.setDifficulty(1);
             } else {
                 difficultySelection.setText("Easy");
-                difficultyScanner.setDifficulty(0);
             }
         });
 
@@ -268,8 +283,13 @@ public class XORunner extends Application {
                         gameMechanics.initializeSelectedUserType('X');
                     } catch (UnknownSelection e) {}
                 }
-                computerAI = new ComputerAI(gameMechanics.getUserX(), gameMechanics.getUserO());
             }
+            if(difficultySelection.isSelected()) {
+                gameMechanics.setHardDifficulty();
+            } else {
+                gameMechanics.setEasyDifficulty();
+            }
+
             BoardBuilder.BuildBoard(boardRoot, theBoard.getBoard().length, board);
             computerMoveThread.start();
             primaryStage.setScene(boardScene);
@@ -290,12 +310,12 @@ public class XORunner extends Application {
                 theBoard.addToBoard(gameMechanics.getActiveUser());
 
                 if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())) {
-                    userHandler.printWinner(gameMechanics.getActiveUser());
-                    primaryStage.close();
+                    finishGameText.setText("The winner is player " + gameMechanics.getActiveUser().getUserType() + "!");
+                    primaryStage.setScene(endGameScene);
                 }
                 if (gameMechanics.draw(theBoard)) {
-                    userHandler.printDraw();
-                    primaryStage.close();
+                    finishGameText.setText("This is a draw!");
+                    primaryStage.setScene(endGameScene);
                 }
 
                 gameMechanics.switchActiveUser();
