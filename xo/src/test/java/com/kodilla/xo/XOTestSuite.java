@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -444,7 +443,7 @@ public class XOTestSuite {
 
             //When+Then
             assertThrows(SelectionOutOfScopeException.class,
-                    () -> gameMechanics.validateSelection(new Board(3)));
+                    () -> gameMechanics.validateUserPositionSelection(new Board(3)));
         }
 
         @Test
@@ -463,7 +462,7 @@ public class XOTestSuite {
 
             //Then
             assertThrows(PositionAlreadySetException.class,
-                    () -> gameMechanics.validateSelection(board));
+                    () -> gameMechanics.validateUserPositionSelection(board));
         }
 
         @Test
@@ -473,7 +472,7 @@ public class XOTestSuite {
             gameMechanics.getActiveUser().setUserSelection(1);
 
             //When + Then
-            assertDoesNotThrow(() -> gameMechanics.validateSelection(new Board(3)));
+            assertDoesNotThrow(() -> gameMechanics.validateUserPositionSelection(new Board(3)));
         }
 
         @Test
@@ -483,7 +482,7 @@ public class XOTestSuite {
             gameMechanics.getActiveUser().setUserSelection(9);
 
             //When + Then
-            assertDoesNotThrow(() -> gameMechanics.validateSelection(new Board(3)));
+            assertDoesNotThrow(() -> gameMechanics.validateUserPositionSelection(new Board(3)));
         }
 
         @Test

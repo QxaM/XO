@@ -6,6 +6,8 @@ public class User {
     private final int userType;
     private int userSelection;
     private boolean isComputer;
+    private int userScore;
+    private String userName;
 
     public User(int userType) {
         this.userType = userType;
@@ -29,6 +31,22 @@ public class User {
 
     public boolean isComputer() {
         return isComputer;
+    }
+
+    public int getUserScore() {
+        return userScore;
+    }
+
+    public void setUserScore(int userScore) {
+        this.userScore = userScore;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     @Override

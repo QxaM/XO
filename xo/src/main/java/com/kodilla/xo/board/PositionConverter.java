@@ -1,5 +1,6 @@
 package com.kodilla.xo.board;
 
+//Converting class from [column, row] to position in range 1-9 or 1-100 depending on board size
 public class PositionConverter {
 
     public static int positionToRow(int position, int size){

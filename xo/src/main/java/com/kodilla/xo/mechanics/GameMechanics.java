@@ -12,9 +12,7 @@ public class GameMechanics implements WinningMechanics{
     private final User userX = new User(1);
     private final User userO = new User(2);
     private User activeUser = userX;
-
-    private DifficultyScanner difficultyScanner = new DifficultyScanner();
-
+    private final DifficultyScanner difficultyScanner = new DifficultyScanner();
     private ComputerAI computerAI = null;
 
     public boolean initializePlayers(char numberOfPlayers) throws WrongNumberOfPlayers{
@@ -44,6 +42,28 @@ public class GameMechanics implements WinningMechanics{
         computerAI = new ComputerAI(userX, userO);
     }
 
+    public void initializeScore(int score) {
+        userX.setUserScore(score);
+        userO.setUserScore(score);
+    }
+
+    public void setUserNames(CharSequence userNameX, CharSequence userNameO){
+        userX.setUserName(userNameX.toString());
+        userO.setUserName(userNameO.toString());
+    }
+
+    public void decreaseScore(Board board) {
+        int actualScore = activeUser.getUserScore();
+        int boardSize = board.getBoard().length * board.getBoard().length;
+        if(difficultyScanner.getDifficulty() == 1){
+            //every move takes 2 points = win in 50 moves - 0 points
+            activeUser.setUserScore(actualScore - (200/boardSize));
+        } else {
+            //every move takes 20 points = win in 5 moves - 0 points
+            activeUser.setUserScore(actualScore - (180/boardSize));
+        }
+    }
+
     public boolean activeUserIsComputer(){
         return activeUser.isComputer();
     }
@@ -56,7 +76,7 @@ public class GameMechanics implements WinningMechanics{
         }
     }
 
-    public boolean validateSelection(Board board) throws SelectionOutOfScopeException, PositionAlreadySetException {
+    public boolean validateUserPositionSelection(Board board) throws SelectionOutOfScopeException, PositionAlreadySetException {
         int boardArea = board.getBoard().length * board.getBoard().length;
         if (activeUser.getUserSelection() > boardArea || activeUser.getUserSelection() < 1){
             throw new SelectionOutOfScopeException();

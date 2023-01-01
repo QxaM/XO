@@ -44,55 +44,52 @@ public class ComputerAI {
 
     public int minmax(Board board, int depth, boolean isMaximizer, int alpha, int beta, int initialPosition){
 
+        //evaluation
         int score = evaluate(board);
-
         if(score == 100) {
             return score - depth;
         }
-
         if(score == -100) {
             return score + depth;
         }
-
+        //brake min-maxing at depth 3, if no winner is visible at that depth - get selection closer to board center
+        //more available winning solution closer to board center
         if(depth >= 3) {
             int boardSize = board.getBoard().length;
             int row = PositionConverter.positionToRow(initialPosition, boardSize);
             int column = PositionConverter.positionToColumn(initialPosition, boardSize);
             return boardSize - (Math.abs(boardSize/2 - row)) - (Math.abs(boardSize/2 - column));
         }
-
         if(board.isFull()) {
             return 0;
         }
 
+        //maximizer moving - winning solutions for computer
         if(isMaximizer){
             score = -1000;
-
             for(int position : board.getEmptyFields()) {
                 maximizerUser.setUserSelection(position);
                 board.addToBoard(maximizerUser);
-
                 score = Math.max(score, minmax(board, depth+1, false, alpha, beta, initialPosition));
-
                 board.removeFromBoard(position);
 
+                //alpha-beta pruning
                 alpha = Math.max(alpha, score);
                 if (beta <= score) {
                     break;
                 }
             }
 
+            //minimizer moving - losing scenarios for computer
         } else {
             score = 1000;
-
             for(int position : board.getEmptyFields()) {
                 minimizerUser.setUserSelection(position);
                 board.addToBoard(minimizerUser);
-
                 score = Math.min(score, minmax(board, depth+1, true, alpha, beta, initialPosition));
-
                 board.removeFromBoard(position);
 
+                //alpha-beta pruning
                 beta = Math.min(beta, score);
                 if (score <= alpha) {
                     break;
@@ -111,9 +108,7 @@ public class ComputerAI {
         for(int position : board.getEmptyFields()) {
             maximizerUser.setUserSelection(position);
             board.addToBoard(maximizerUser);
-
             int moveVal = minmax(board, 0, false, -1000, 1000, position);
-
             board.removeFromBoard(position);
 
             if(moveVal > bestVal) {

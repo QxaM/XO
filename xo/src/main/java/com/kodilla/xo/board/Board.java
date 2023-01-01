@@ -29,6 +29,7 @@ public final class Board {
         board[positionRow][positionColumn] = 0;
     }
 
+    //Check board at position in range 1-9 ora 1-100 depending on board type
     public int at(int i){
         int positionRow = PositionConverter.positionToRow(i, board.length);
         int positionColumn = PositionConverter.positionToColumn(i, board[positionRow].length);
@@ -37,13 +38,11 @@ public final class Board {
     }
 
     public List<Integer> getEmptyFields() {
-        List<Integer> returnList = IntStream.range(0, board.length)
+        return IntStream.range(0, board.length)
                 .flatMap(i -> IntStream.range(0, board[i].length)
                         .filter(j -> board[i][j] == 0)
                         .map(j -> PositionConverter.rowAndColumnToPosition(board.length, i, j)))
                 .boxed().collect(Collectors.toList());
-        return returnList;
-
     }
 
     public boolean isFull() {

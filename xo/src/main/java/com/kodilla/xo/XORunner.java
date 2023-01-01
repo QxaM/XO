@@ -7,6 +7,9 @@ import com.kodilla.xo.board.Board;
 import com.kodilla.xo.board.BoardInitializator;
 import com.kodilla.xo.board.BoardPrinter;
 import com.kodilla.xo.mechanics.*;
+import com.kodilla.xo.ranking.RankingEntry;
+import com.kodilla.xo.ranking.RankingHandler;
+import com.kodilla.xo.ranking.UserToRank;
 import com.kodilla.xo.user.UserHandler;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -14,8 +17,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -28,6 +31,9 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+
+import java.time.LocalDateTime;
+import java.util.Map;
 
 
 public class XORunner extends Application {
@@ -98,7 +104,7 @@ public class XORunner extends Application {
                 while(!selectionValidated){
                     gameMechanics.getActiveUser().setUserSelection(userHandler.getPositionSelection());
                     try{
-                        selectionValidated = gameMechanics.validateSelection(theBoard);
+                        selectionValidated = gameMechanics.validateUserPositionSelection(theBoard);
                     } catch (SelectionOutOfScopeException e){
                         userHandler.printWrongRange(theBoard);
                     } catch (PositionAlreadySetException e) {
@@ -128,14 +134,19 @@ public class XORunner extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        RankingHandler rankingHandler = new RankingHandler();
+        rankingHandler.loadRanking();
+
         Group boardRoot = new Group();
         Group menuRoot = new Group();
         StackPane endRoot = new StackPane();
-        UserHandler userHandler = new UserHandler();
+        Group rankingRoot = new Group();
 
         Scene boardScene = new Scene(boardRoot, 700, 700, Paint.valueOf("Black"));
         Scene menuScene = new Scene(menuRoot, 700, 700, Paint.valueOf("Black"));
         Scene endGameScene = new Scene(endRoot, 700, 700, Paint.valueOf("Black"));
+        Scene rankingScene = new Scene(rankingRoot, 700, 700, Paint.valueOf("Black"));
+
         Font font = Font.font("Arial", FontWeight.BOLD, 24);
 
         Rectangle board = new Rectangle(100, 100, 500, 500);
@@ -154,7 +165,15 @@ public class XORunner extends Application {
         exitButtonFinished.setOnAction(event -> primaryStage.close());
         StackPane.setAlignment(exitButtonFinished, Pos.BOTTOM_CENTER);
 
-        endRoot.getChildren().addAll(finishGameText, exitButtonFinished);
+        Button backButtonFinished = new Button("Back");
+        backButtonFinished.setFont(font);
+        backButtonFinished.setOnAction(event -> {
+            boardRoot.getChildren().clear();
+            primaryStage.setScene(menuScene);
+        });
+        StackPane.setAlignment(backButtonFinished, Pos.BOTTOM_LEFT);
+
+        endRoot.getChildren().addAll(finishGameText, exitButtonFinished, backButtonFinished);
 
         Thread computerMoveThread = new Thread(() -> {
             Runnable computerUpdater = () -> {
@@ -177,14 +196,100 @@ public class XORunner extends Application {
             };
             while(true) {
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(150);
                 } catch (InterruptedException e) {}
                 Platform.runLater(computerUpdater);
             }
         });
         computerMoveThread.setDaemon(true);
 
+        //Building rankingScene
+        Button exitButtonRanking = new Button("Exit!");
+        exitButtonRanking.setMinWidth(100);
+        exitButtonRanking.setMinHeight(40);
+        exitButtonRanking.setLayoutX(600);
+        exitButtonRanking.setLayoutY(660);
+        exitButtonRanking.setFont(font);
+        exitButtonRanking.setOnAction(event -> primaryStage.close());
+
+        Button backButtonRanking = new Button("Back");
+        backButtonRanking.setMinWidth(100);
+        backButtonRanking.setMinHeight(40);
+        backButtonRanking.setLayoutX(300);
+        backButtonRanking.setLayoutY(660);
+        backButtonRanking.setFont(font);
+        backButtonRanking.setOnAction(event -> primaryStage.setScene(menuScene));
+
+        TableView<RankingEntry> tableView = new TableView<>();
+        tableView.setLayoutX(25);
+        tableView.setLayoutY(25);
+        tableView.setMinSize(650, 600);
+        tableView.setMaxSize(650, 600);
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<RankingEntry, String> userNameColumn = new TableColumn<>("User name");
+        userNameColumn.setCellValueFactory(new PropertyValueFactory<>("userName"));
+        userNameColumn.setStyle("-fx-alignment: CENTER");
+        TableColumn<RankingEntry, String> boardSizeColumn = new TableColumn<>("Board size");
+        boardSizeColumn.setCellValueFactory(new PropertyValueFactory<>("boardSize"));
+        boardSizeColumn.setStyle("-fx-alignment: CENTER");
+        TableColumn<RankingEntry, String> dateColumn = new TableColumn<>("Date");
+        dateColumn.setCellValueFactory(new PropertyValueFactory<>("localDateTime"));
+        dateColumn.setStyle("-fx-alignment: CENTER");
+        TableColumn<RankingEntry, String> scoreColumn = new TableColumn<>("Score");
+        scoreColumn.setCellValueFactory(new PropertyValueFactory<>("score"));
+        scoreColumn.setStyle("-fx-alignment: CENTER");
+        tableView.setPlaceholder(new Label("No scores yet!"));
+
+        tableView.getColumns().add(userNameColumn);
+        tableView.getColumns().add(boardSizeColumn);
+        tableView.getColumns().add(dateColumn);
+        tableView.getColumns().add(scoreColumn);
+
+        rankingRoot.getChildren().addAll(exitButtonRanking, tableView, backButtonRanking);
+
+        //Building playing board scene
+        board.setFill(Paint.valueOf("Blue"));
+        board.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            System.out.println("Test Button pressed at position: " + event.getSceneX() + ", " + event.getSceneY());
+            int enteredBoardPosition = InputScanner.convertScannedPositionToBoard(theBoard.getBoard().length, board, event.getSceneX(), event.getSceneY());
+            gameMechanics.getActiveUser().setUserSelection(enteredBoardPosition);
+            try{
+                gameMechanics.validateUserPositionSelection(theBoard);
+                ShapeAdder.addShape(gameMechanics.getActiveUser(), boardRoot, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
+                theBoard.addToBoard(gameMechanics.getActiveUser());
+                gameMechanics.decreaseScore(theBoard);
+
+                if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())) {
+                    rankingHandler.getRanking().put(new UserToRank(gameMechanics.getActiveUser().getUserName(), theBoard.getBoard().length, LocalDateTime.now()),
+                            gameMechanics.getActiveUser().getUserScore());
+                    rankingHandler.saveRanking();
+                    finishGameText.setText("The winner is player " + gameMechanics.getActiveUser().getUserName() + "!");
+                    computerMoveThread.interrupt();
+                    primaryStage.setScene(endGameScene);
+                }
+                if (gameMechanics.draw(theBoard)) {
+                    finishGameText.setText("This is a draw!");
+                    computerMoveThread.interrupt();
+                    primaryStage.setScene(endGameScene);
+                }
+                gameMechanics.switchActiveUser();
+            } catch (SelectionOutOfScopeException | PositionAlreadySetException e){
+            }
+        });
+
+        Button exitButtonBoard = new Button("Exit!");
+        exitButtonBoard.setMinWidth(100);
+        exitButtonBoard.setMinHeight(40);
+        exitButtonBoard.setLayoutX(300);
+        exitButtonBoard.setLayoutY(660);
+        exitButtonBoard.setFont(font);
+        exitButtonBoard.setOnAction(event -> primaryStage.close());
+
         //Building menuScene
+        Font fontMenu = Font.font("Arial", FontWeight.NORMAL, 18);
+        Font fontLabels = Font.font("Arial", FontWeight.NORMAL, 18);
+
         Button exitButtonMenu = new Button("Exit!");
         exitButtonMenu.setMinWidth(100);
         exitButtonMenu.setMinHeight(40);
@@ -193,7 +298,30 @@ public class XORunner extends Application {
         exitButtonMenu.setFont(font);
         exitButtonMenu.setOnAction(event -> primaryStage.close());
 
-        Font fontMenu = Font.font("Arial", FontWeight.NORMAL, 18);
+        Label enterPlayer1Username = new Label("Player 1 name");
+        enterPlayer1Username.setFont(fontLabels);
+        enterPlayer1Username.setTextFill(Paint.valueOf("White"));
+        enterPlayer1Username.setLayoutX(50);
+        enterPlayer1Username.setLayoutY(20);
+
+        TextField player1Username = new TextField("Player1");
+        player1Username.setAlignment(Pos.CENTER);
+        player1Username.setLayoutX(35);
+        player1Username.setLayoutY(50);
+
+        Label enterPlayer2Username = new Label("Player 2 name");
+        enterPlayer2Username.setFont(fontLabels);
+        enterPlayer2Username.setTextFill(Paint.valueOf("White"));
+        enterPlayer2Username.setLayoutX(530);
+        enterPlayer2Username.setLayoutY(20);
+        enterPlayer2Username.setVisible(false);
+
+        TextField player2Username = new TextField("Player2");
+        player2Username.setAlignment(Pos.CENTER);
+        player2Username.setLayoutX(515);
+        player2Username.setLayoutY(50);
+        player2Username.setVisible(false);
+
         ToggleButton playerTypeSelection = new ToggleButton("X selected");
         playerTypeSelection.setMinWidth(250);
         playerTypeSelection.setMinHeight(40);
@@ -219,9 +347,13 @@ public class XORunner extends Application {
             if (playerSelection.isSelected()) {
                 playerSelection.setText("Player vs Player");
                 playerTypeSelection.setVisible(false);
+                enterPlayer2Username.setVisible(true);
+                player2Username.setVisible(true);
             } else {
                 playerSelection.setText("Player vs Computer");
                 playerTypeSelection.setVisible(true);
+                enterPlayer2Username.setVisible(false);
+                player2Username.setVisible(false);
             }
         });
 
@@ -251,6 +383,21 @@ public class XORunner extends Application {
             } else {
                 difficultySelection.setText("Easy");
             }
+        });
+
+        Button rankingButton = new Button("Ranking list");
+        rankingButton.setMinWidth(250);
+        rankingButton.setMinHeight(40);
+        rankingButton.setLayoutX(225);
+        rankingButton.setLayoutY(260);
+        rankingButton.setFont(fontMenu);
+        rankingButton.setOnAction(event -> {
+            rankingHandler.loadRanking();
+            tableView.getItems().clear();
+            for(Map.Entry<UserToRank, Integer> entry : rankingHandler.getRanking().entrySet()) {
+                tableView.getItems().add(new RankingEntry(entry.getKey(), entry.getValue()));
+            }
+            primaryStage.setScene(rankingScene);
         });
 
         Button startButton = new Button("START");
@@ -289,52 +436,19 @@ public class XORunner extends Application {
             } else {
                 gameMechanics.setEasyDifficulty();
             }
-
+            gameMechanics.initializeScore(100);
+            gameMechanics.setUserNames(player1Username.getCharacters(), player2Username.getCharacters());
+            boardRoot.getChildren().addAll(board, exitButtonBoard);
             BoardBuilder.BuildBoard(boardRoot, theBoard.getBoard().length, board);
-            computerMoveThread.start();
+            if(!computerMoveThread.isAlive()){
+                computerMoveThread.start();
+            }
             primaryStage.setScene(boardScene);
         });
 
         menuRoot.getChildren().addAll(startButton, exitButtonMenu, playerSelection, boardSelection, playerTypeSelection,
-                                        difficultySelection);
-
-        //Building playing board scene
-        board.setFill(Paint.valueOf("Blue"));
-        board.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
-            System.out.println("Test Button pressed at position: " + event.getSceneX() + ", " + event.getSceneY());
-            int enteredBoardPosition = InputScanner.convertScannedPositionToBoard(theBoard.getBoard().length, board, event.getSceneX(), event.getSceneY());
-            gameMechanics.getActiveUser().setUserSelection(enteredBoardPosition);
-            try{
-                gameMechanics.validateSelection(theBoard);
-                ShapeAdder.addShape(gameMechanics.getActiveUser(), boardRoot, gameMechanics.getActiveUser().getUserSelection(), theBoard.getBoard().length, board);
-                theBoard.addToBoard(gameMechanics.getActiveUser());
-
-                if(gameMechanics.win(theBoard, gameMechanics.getActiveUser())) {
-                    finishGameText.setText("The winner is player " + gameMechanics.getActiveUser().getUserType() + "!");
-                    primaryStage.setScene(endGameScene);
-                }
-                if (gameMechanics.draw(theBoard)) {
-                    finishGameText.setText("This is a draw!");
-                    primaryStage.setScene(endGameScene);
-                }
-
-                gameMechanics.switchActiveUser();
-            } catch (SelectionOutOfScopeException e){
-                userHandler.printWrongRange(theBoard);
-            } catch (PositionAlreadySetException e) {
-                userHandler.printPositionAlreadySet();
-            }
-        });
-        boardRoot.getChildren().add(board);
-
-        Button exitButtonBoard = new Button("Exit!");
-        exitButtonBoard.setMinWidth(100);
-        exitButtonBoard.setMinHeight(40);
-        exitButtonBoard.setLayoutX(300);
-        exitButtonBoard.setLayoutY(660);
-        exitButtonBoard.setFont(font);
-        exitButtonBoard.setOnAction(event -> primaryStage.close());
-        boardRoot.getChildren().add(exitButtonBoard);
+                                        difficultySelection, rankingButton, enterPlayer1Username, player1Username,
+                                        enterPlayer2Username, player2Username);
 
         primaryStage.setTitle("XO");
         primaryStage.setScene(menuScene);
